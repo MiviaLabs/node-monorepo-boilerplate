@@ -1,0 +1,42 @@
+# GitHub CODEOWNERS
+#
+# This file defines who owns which files in the repository.
+# Owners are automatically requested for review when pull requests
+# change any files they own.
+#
+# Syntax: [pattern] [owner]
+#
+# Configure this owner to the maintainers or team responsible for your fork.
+
+* @MiviaLabs
+
+# Ensure CODEOWNERS file itself is protected
+CODEOWNERS @MiviaLabs
+
+# GitHub workflows and CI/CD - only your-maintainer can modify
+.github/* @MiviaLabs
+.github/**/* @MiviaLabs
+
+# Git hooks - only your-maintainer can modify
+.husky/* @MiviaLabs
+.husky/**/* @MiviaLabs
+
+# Project configuration files - only your-maintainer can modify
+package.json @MiviaLabs
+pnpm-lock.yaml @MiviaLabs
+pnpm-workspace.yaml @MiviaLabs
+
+# Nx configuration - only your-maintainer can modify
+nx.json @MiviaLabs
+
+# TypeScript configuration - only your-maintainer can modify
+tsconfig*.json @MiviaLabs
+**/tsconfig*.json @MiviaLabs
+
+# Root level configuration files
+.prettierrc* @MiviaLabs
+.eslintrc* @MiviaLabs
+.editorconfig @MiviaLabs
+
+# Infrastructure and security
+.agents/**/* @MiviaLabs

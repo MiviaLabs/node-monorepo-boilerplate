@@ -1,0 +1,18 @@
+{
+  "name": "@package/i18n",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "scripts": {
+    "test": "pnpm -C ../.. exec jest --config packages/i18n/jest.config.js",
+    "test:watch": "pnpm -C ../.. exec jest --config packages/i18n/jest.config.js --watch",
+    "test:coverage": "pnpm -C ../.. exec jest --config packages/i18n/jest.config.js --coverage"
+  },
+  "devDependencies": {
+    "@jest/globals": "30.3.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.10.5",
+    "jest": "30.3.0",
+    "ts-jest": "29.4.12",
+    "typescript": "6.0.3"
+  }
+}

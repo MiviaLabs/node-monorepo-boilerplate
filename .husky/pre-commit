@@ -1,0 +1,120 @@
+#!/usr/bin/env sh
+# Pre-commit hooks are MANDATORY - no bypass allowed
+
+# Ensure pnpm is in PATH (critical for CI/CD and devcontainer compatibility)
+export PATH="$PATH:$(pwd)/node_modules/.bin"
+if command -v corepack >/dev/null 2>&1; then
+  PNPM_BIN="corepack pnpm"
+elif command -v pnpm >/dev/null 2>&1; then
+  PNPM_BIN="pnpm"
+elif [ -x "$(pwd)/node_modules/.bin/pnpm" ]; then
+  PNPM_BIN="$(pwd)/node_modules/.bin/pnpm"
+else
+  echo "ERROR: pnpm not found in PATH or node_modules/.bin/"
+  echo "Run 'corepack enable pnpm' or 'pnpm install' to fix this."
+  exit 1
+fi
+
+echo "Running pre-commit hooks (using $PNPM_BIN)..."
+
+# Compile GitHub Agentic Workflows if any .md workflow files were staged
+STAGED_WORKFLOW_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^\.github/workflows/.*\.md$' || true)
+if [ -n "$STAGED_WORKFLOW_FILES" ]; then
+  echo "Compiling GitHub Agentic Workflows..."
+  if command -v gh >/dev/null 2>&1; then
+    gh aw compile || {
+      echo "Agentic workflow compilation failed. Please fix the errors above."
+      echo "Run 'gh aw compile' to see detailed error messages."
+      exit 1
+    }
+    echo "  Adding compiled .lock.yml files to commit..."
+    # Find and stage any generated .lock.yml files
+    find .github/workflows -name '*.lock.yml' -newer .git/index -exec git add {} \; 2>/dev/null || true
+  else
+    echo "Warning: gh-aw extension not found. Skipping workflow compilation."
+    echo "Install with: gh extension install github/gh-aw"
+  fi
+fi
+
+# Run lint-staged for the staged file classes declared in .lintstagedrc.json.
+$PNPM_BIN exec lint-staged
+
+# Agent contract changes must pass live registry tests and produce no generated drift.
+STAGED_AGENT_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^(\.agents/|scripts/agentic/|AGENTS\.md$|CODEX\.md$|CLAUDE\.md$|\.github/(agents|skills|instructions|copilot-instructions\.md))' || true)
+if [ -n "$STAGED_AGENT_FILES" ]; then
+  echo "Validating agent contract and generated surfaces..."
+  $PNPM_BIN run agentic:check || {
+    echo "Agent contract validation or generated-surface drift detected."
+    echo "Run '$PNPM_BIN agentic:sync', review the output, and stage all generated changes."
+    exit 1
+  }
+fi
+
+# Run Semgrep documentation checks on staged TypeScript files (advisory only, non-blocking)
+STAGED_TS_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' || true)
+if [ -n "$STAGED_TS_FILES" ]; then
+  if command -v semgrep >/dev/null 2>&1; then
+    echo "Running documentation checks (advisory)..."
+    # Uses dedicated documentation rules config (separate from security rules)
+    echo "$STAGED_TS_FILES" | xargs semgrep scan \
+      --config tools/semgrep/documentation.yml \
+      --severity WARNING \
+      --metrics=off || true
+    echo "Documentation check complete (findings above are advisory, not blocking)."
+  fi
+fi
+
+# Run TypeScript type checking on web app if staged files touch the web app
+STAGED_WEB_TS_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' | grep '^apps/web/' || true)
+if [ -n "$STAGED_WEB_TS_FILES" ]; then
+  echo "Type checking web app..."
+  cd apps/web && npx tsc --noEmit || {
+    echo "TypeScript errors found in web app. Aborting commit."
+    exit 1
+  }
+  cd ../..
+fi
+
+# Run a fast API/shared-package typecheck when staged files touch those areas.
+STAGED_API_TS_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' | grep -E '^apps/api/|^packages/' || true)
+if [ -n "$STAGED_API_TS_FILES" ]; then
+  echo "Type checking API and affected packages..."
+  $PNPM_BIN run typecheck:all || {
+    echo "TypeScript errors found. Aborting commit."
+    exit 1
+  }
+fi
+
+# Validate OPA policies if any .rego files were staged
+STAGED_REGO_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.rego$' | grep '^packages/opa/' || true)
+if [ -n "$STAGED_REGO_FILES" ]; then
+  echo "Validating OPA policies..."
+
+  # Install OPA if not already available
+  if ! command -v opa >/dev/null 2>&1; then
+    echo "Installing OPA..."
+    OPA_TEMP_DIR=$(mktemp -d)
+    curl -L -o "$OPA_TEMP_DIR/opa" https://openpolicyagent.org/downloads/latest/opa_linux_amd64
+    chmod +x "$OPA_TEMP_DIR/opa"
+    OPA_BIN="$OPA_TEMP_DIR/opa"
+  else
+    OPA_BIN="opa"
+  fi
+
+  # Validate each staged .rego file
+  for policy in $STAGED_REGO_FILES; do
+    echo "  Checking $policy..."
+    $OPA_BIN check "$policy" || {
+      echo "OPA policy validation failed for $policy. Aborting commit."
+      rm -rf "$OPA_TEMP_DIR" 2>/dev/null || true
+      exit 1
+    }
+  done
+
+  # Cleanup temp directory if we created one
+  rm -rf "$OPA_TEMP_DIR" 2>/dev/null || true
+
+  echo "  All OPA policies validated."
+fi
+
+echo "Pre-commit hooks completed."

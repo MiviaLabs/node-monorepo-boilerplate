@@ -1,0 +1,168 @@
+# Infrastructure Alerting Rules
+#
+# These rules define alerts for infrastructure-level metrics.
+# Rules are evaluated by Prometheus based on the configured evaluation_interval.
+#
+# Severity levels:
+# - critical: Immediate action required, service is down
+# - warning: Action required soon, service degraded
+# - info: Informational, no immediate action
+
+groups:
+  - name: infrastructure_alerts
+    interval: 30s
+    rules:
+      # Node Exporter - High CPU
+      - alert: NodeHighCPU
+        expr: |
+          (100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 15m
+        labels:
+          severity: warning
+          component: node
+        annotations:
+          summary: 'High CPU usage on node'
+          description: 'CPU usage is {{ $value }}% on {{ $labels.instance }}'
+
+      # Node Exporter - Critical CPU
+      - alert: NodeCriticalCPU
+        expr: |
+          (100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: node
+        annotations:
+          summary: 'Critical CPU usage on node'
+          description: 'CPU usage is {{ $value }}% on {{ $labels.instance }}'
+
+      # Node Exporter - High Memory
+      - alert: NodeHighMemory
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 15m
+        labels:
+          severity: warning
+          component: node
+        annotations:
+          summary: 'High memory usage on node'
+          description: 'Memory usage is {{ $value }}% on {{ $labels.instance }}'
+
+      # Node Exporter - Critical Memory
+      - alert: NodeCriticalMemory
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: node
+        annotations:
+          summary: 'Critical memory usage on node'
+          description: 'Memory usage is {{ $value }}% on {{ $labels.instance }}'
+
+      # Node Exporter - Disk Space Low
+      - alert: NodeDiskSpaceLow
+        expr: |
+          (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100 > 80
+        for: 15m
+        labels:
+          severity: warning
+          component: node
+        annotations:
+          summary: 'Low disk space on node'
+          description: 'Disk usage is {{ $value }}% on {{ $labels.instance }}:{{ $labels.mountpoint }}'
+
+      # Node Exporter - Critical Disk Space
+      - alert: NodeCriticalDiskSpace
+        expr: |
+          (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: node
+        annotations:
+          summary: 'Critical disk space on node'
+          description: 'Disk usage is {{ $value }}% on {{ $labels.instance }}:{{ $labels.mountpoint }}'
+
+      # PostgreSQL - High Connections
+      - alert: PostgreSQLHighConnections
+        expr: |
+          (pg_stat_database_numbackends / pg_settings_max_connections) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: postgres
+        annotations:
+          summary: 'High PostgreSQL connection count'
+          description: '{{ $value | humanizePercentage }} of max connections in use'
+
+      # PostgreSQL - Replication Lag
+      - alert: PostgreSQLReplicationLag
+        expr: |
+          pg_replication_lag_seconds > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: postgres
+        annotations:
+          summary: 'PostgreSQL replication lag detected'
+          description: 'Replication lag is {{ $value }}s'
+
+      # Redis - High Memory Usage
+      - alert: RedisHighMemory
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes) > 0.8
+        for: 15m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: 'High Redis memory usage'
+          description: '{{ $value | humanizePercentage }} of Redis max memory in use'
+
+      # Redis - Connection Rejected
+      - alert: RedisConnectionRejected
+        expr: |
+          rate(redis_rejected_connections_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: 'Redis rejecting connections'
+          description: '{{ $value }} rejected connections per second'
+
+      # Container - High CPU Usage
+      - alert: ContainerHighCPU
+        expr: |
+          (rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100) > 80
+        for: 15m
+        labels:
+          severity: warning
+          component: container
+        annotations:
+          summary: 'High container CPU usage'
+          description: 'Container {{ $labels.name }} CPU usage is {{ $value }}%'
+
+      # Container - OOM Killed
+      - alert: ContainerOOMKilled
+        expr: |
+          rate(container_tasks_state{name!="",state="oom_killed"}[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+          component: container
+        annotations:
+          summary: 'Container OOM killed'
+          description: 'Container {{ $labels.name }} was OOM killed'
+
+      # Target - Scrape Failed
+      - alert: ScrapeFailed
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: monitoring
+        annotations:
+          summary: 'Scrape target is down'
+          description: 'Target {{ $labels.job }}/{{ $labels.instance }} is not being scraped'

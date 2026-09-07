@@ -1,0 +1,40 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    "module": "commonjs",
+    "types": ["node"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "es2021",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@src/*": ["src/*"],
+      "@package/db-core": ["../../packages/db-core/src/index.ts"],
+      "@package/db-outbox": ["../../packages/db-outbox/src/index.ts"],
+      "@package/test-utils": ["../../packages/test-utils/src/index.ts"],
+      "@package/types": ["../../packages/types/src/index.ts"],
+      "@package/utils": ["../../packages/utils/src/index.ts"],
+      "@package/schema": ["../../packages/schema/src/index.ts"],
+      "@package/constants": ["../../packages/constants/src/index.ts"],
+      "@package/errors": ["../../packages/errors/src/index.ts"],
+      "@package/core": ["../../packages/core/src/index.ts"],
+      "@package/encryption": ["../../packages/encryption/src/index.ts"],
+      "@package/events": ["../../packages/events/src/index.ts"],
+      "@package/email": ["../../packages/email/src/index.ts"],
+      "@package/email/webhooks": ["../../packages/email/src/webhooks/index.ts"],
+      "@package/observability": ["../../packages/observability/src/index.ts"],
+      "@package/opa": ["../../packages/opa/src/index.ts"],
+      "@package/redis": ["../../packages/redis/src/index.ts"],
+      "@package/storage": ["../../packages/storage/src/index.ts"],
+      "@package/storage/nest": ["../../packages/storage/src/nest.ts"],
+      "@package/queues": ["../../packages/queues/src/index.ts"],
+      "@package/tasks": ["../../packages/tasks/src/index.ts"],
+      "@package/pubsub": ["../../packages/pubsub/src/index.ts"],
+      "@package/auth": ["../../packages/auth/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts"]
+}

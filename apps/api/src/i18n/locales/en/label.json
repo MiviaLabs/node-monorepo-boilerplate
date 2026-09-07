@@ -1,0 +1,7 @@
+{
+  "email": "Email address",
+  "password": "Password",
+  "name": "Name",
+  "createdAt": "Created at",
+  "updatedAt": "Updated at"
+}

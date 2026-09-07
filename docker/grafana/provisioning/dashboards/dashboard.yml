@@ -1,0 +1,21 @@
+# Grafana Dashboard Provisioning Configuration
+#
+# This configures Grafana to auto-load dashboards from the dashboard directory.
+# Add dashboard JSON files to: docker/grafana/provisioning/dashboards/
+#
+# References:
+#   - https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
+
+apiVersion: 1
+
+providers:
+  - name: 'StarterKit'
+    orgId: 1
+    folder: 'Starter Kit'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: true

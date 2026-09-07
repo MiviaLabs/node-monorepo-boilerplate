@@ -1,0 +1,44 @@
+{
+  "name": "db-core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/db-core/src",
+  "projectType": "library",
+  "tags": ["scope:infra"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/db-core",
+        "main": "packages/db-core/src/index.ts",
+        "tsConfig": "packages/db-core/tsconfig.lib.json",
+        "assets": ["packages/db-core/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx jest --config jest.config.js --selectProjects unit",
+        "cwd": "packages/db-core"
+      }
+    },
+    "test:integration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx jest --config jest.config.js --selectProjects integration",
+        "cwd": "packages/db-core"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node ../../node_modules/typescript/bin/tsc --noEmit -p tsconfig.lib.json",
+        "cwd": "packages/db-core"
+      }
+    }
+  }
+}

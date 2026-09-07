@@ -1,0 +1,23 @@
+{
+  "name": "eslint-rules",
+  "version": "1.0.0",
+  "description": "Custom ESLint rules for Node Monorepo Boilerplate",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"No tests specified for eslint-rules\" && exit 0"
+  },
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "custom-rules"
+  ],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^10.0.0"
+  },
+  "dependencies": {
+    "eslint-plugin-local-rules": "^2.0.1"
+  }
+}

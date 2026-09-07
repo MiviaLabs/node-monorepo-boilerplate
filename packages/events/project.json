@@ -1,0 +1,33 @@
+{
+  "name": "events",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/events/src",
+  "projectType": "library",
+  "tags": ["scope:domain"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/events",
+        "main": "packages/events/src/index.ts",
+        "tsConfig": "packages/events/tsconfig.lib.json",
+        "assets": ["packages/events/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsx --test src/**/*.test.ts",
+        "cwd": "packages/events"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint src",
+        "cwd": "packages/events"
+      }
+    }
+  }
+}

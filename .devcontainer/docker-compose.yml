@@ -1,0 +1,215 @@
+# Docker Compose for GitHub Codespaces and Ona Development Environments
+#
+# CRITICAL: All services MUST use network_mode: host
+# Without this, GitHub Copilot agents cannot communicate with containers
+# See: https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration
+#
+# Usage:
+#   This file is automatically used by Codespaces/Ona when opening the repo
+#   Local testing: docker compose -f .devcontainer/docker-compose.yml up
+#
+# Performance Optimizations:
+#   - BuildKit cache mounts for faster pnpm installs
+#   - Named volumes for persistence and performance
+#   - Health checks for proper dependency startup
+
+services:
+  # Main development container
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      # Enable BuildKit for cache mounts and multi-stage builds
+      x-bake:
+        cache-from:
+          - type=registry,ref=ghcr.io/mivialabs/starter-kit-devcontainer:cache
+        cache-to:
+          - type=registry,ref=ghcr.io/mivialabs/starter-kit-devcontainer:cache,mode=max
+    volumes:
+      # Workspace mount with cached mode for performance
+      - ..:/workspace:cached
+      # Volume mounts for node_modules (5x faster than bind mount)
+      - node_modules:/workspace/node_modules
+      # pnpm global store for caching
+      - pnpm_store:/home/node/.local/share/pnpm/store
+      # Git configuration persistence
+      - git_config:/home/node/.gitconfig
+    # REQUIRED: Host network mode for GitHub Copilot agent connectivity
+    network_mode: host
+    # Wait for dependencies to be healthy before starting
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+      opa:
+        condition: service_healthy
+    # Keep container running
+    command: sleep infinity
+    environment:
+      # Application environment
+      - NODE_ENV=development
+      # Database connections
+      - DATABASE_URL=postgresql://starter:starter_dev@localhost:5432/starter_db
+      - EVENTS_DATABASE_URL=postgresql://starter:starter_dev@localhost:5432/starter_events_db
+      # Cache and message queue
+      - REDIS_URL=redis://localhost:6379
+      - RABBITMQ_URL=amqp://guest:guest@localhost:5672
+      # Object storage
+      - MINIO_ENDPOINT=localhost
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      # OPA policy engine
+      - OPA_URL=http://localhost:8181
+      - OPA_POLICY_PATH=/v1/data/authorization/allow
+      - OPA_TIMEOUT=5000
+      - OPA_ENFORCEMENT_MODE=hybrid
+      # pnpm configuration
+      - PNPM_HOME=/home/node/.local/share/pnpm
+      - PATH=/home/node/.local/share/pnpm:${PATH}
+    # Security: run as non-root user
+    user: node
+
+  # PostgreSQL Database with pgvector extension
+  postgres:
+    image: pgvector/pgvector:0.8.0-pg18
+    # REQUIRED: Host network mode for agent connectivity
+    network_mode: host
+    environment:
+      POSTGRES_USER: starter
+      POSTGRES_PASSWORD: starter_dev
+      POSTGRES_DB: starter_db
+      # Performance tuning for development
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_WORK_MEM: 16MB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    # Note: With host network, postgres runs on localhost:5432
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U starter -d starter_db']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # Redis Cache and Session Store
+  redis:
+    image: redis:8.0.2-alpine
+    # REQUIRED: Host network mode for agent connectivity
+    network_mode: host
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    # Note: With host network, redis runs on localhost:6379
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # RabbitMQ Message Queue with Management Plugin
+  rabbitmq:
+    image: rabbitmq:4.0.5-management-alpine
+    # REQUIRED: Host network mode for agent connectivity
+    network_mode: host
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      # Enable management plugin
+      RABBITMQ_PLUGINS: rabbitmq_management
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    # Note: With host network, AMQP on localhost:5672, Management UI on localhost:15672
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # MinIO Object Storage (S3-compatible)
+  minio:
+    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    # REQUIRED: Host network mode for agent connectivity
+    network_mode: host
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      # Console configuration
+      MINIO_BROWSER_REDIRECT_URL: http://localhost:9001
+    command: server /data --console-address ':9001'
+    volumes:
+      - minio_data:/data
+    # Note: With host network, API on localhost:9000, Console on localhost:9001
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # Mailpit for Email Testing
+  # Actively maintained replacement for mailhog
+  mailpit:
+    image: axllent/mailpit:v1.21
+    # REQUIRED: Host network mode for agent connectivity
+    network_mode: host
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    # Note: With host network, SMTP on localhost:1025, Web UI on localhost:8025
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8025/livez']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # Open Policy Agent (OPA) for policy-based authorization
+  opa:
+    image: openpolicyagent/opa:0.64.1
+    # REQUIRED: Host network mode for agent connectivity
+    network_mode: host
+    command: run -s /policies
+    volumes:
+      - opa_policies:/policies:ro
+      - ../packages/opa/policies/authz:/policies/authorization:ro
+    # Note: With host network, OPA runs on localhost:8181
+    healthcheck:
+      test: ['CMD', '/opa', 'version']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+# Named volumes for data persistence and performance
+volumes:
+  # Application volumes
+  node_modules:
+    driver: local
+  pnpm_store:
+    driver: local
+  git_config:
+    driver: local
+
+  # Service data volumes
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  minio_data:
+    driver: local
+  opa_policies:
+    driver: local

@@ -1,0 +1,12 @@
+# Exclude test files from Docker build context
+*_test.rego
+**/__tests__
+**/node_modules
+**/*.spec.ts
+**/*.test.ts
+
+# Exclude development files
+.vscode
+.idea
+*.md
+!README.md

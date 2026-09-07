@@ -1,0 +1,984 @@
+rules:
+  - id: sql-injection-concat-query
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Possible SQL injection. Use parameterized queries.
+    metadata:
+      category: security
+      owasp: 'A03:2021 - Injection'
+    paths:
+      include:
+        - /apps/api/src/**
+        - /packages/**/src/**
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+        - /packages/db-core/src/seed/**
+        - /packages/test-utils/**
+    patterns:
+      - pattern-either:
+          - pattern: $DB.query($QUERY + $INPUT)
+          - pattern: $DB.query(`...${$INPUT}...`)
+
+  - id: hardcoded-secret-assignment
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Hardcoded secret detected. Move secret material to managed secrets.
+    metadata:
+      category: security
+      owasp: 'A07:2021 - Identification and Authentication Failures'
+    paths:
+      include:
+        - /apps/api/src/**
+        - /packages/**/src/**
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+        - /packages/db-core/src/seed/**
+        - /packages/test-utils/**
+    patterns:
+      - pattern-either:
+          - pattern: const $KEY = $VALUE
+          - pattern: let $KEY = $VALUE
+          - pattern: var $KEY = $VALUE
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: '(?i).*(password|passphrase|secret|api[_-]?key|private[_-]?key|jwt[_-]?secret|client[_-]?secret|access[_-]?token|refresh[_-]?token).*'
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: "^[\"'](?=[^\"'\\$]*[A-Za-z])(?=[^\"'\\$]*\\d)[^\"'\\$]{16,}[\"']$"
+      - pattern-not-regex: '(?i)(example|dummy|mock|placeholder|replace[_-]?me|change[_-]?me|sample)'
+
+  - id: weak-crypto-hash
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Weak hash detected (md5/sha1). Use sha256+ or an approved KDF.
+    metadata:
+      category: security
+      owasp: 'A02:2021 - Cryptographic Failures'
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createHash("md5")
+          - pattern: crypto.createHash("sha1")
+          - pattern: createHash("md5")
+          - pattern: createHash("sha1")
+
+  - id: eval-usage
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: eval() usage is dangerous and can enable code injection.
+    metadata:
+      category: security
+      owasp: 'A03:2021 - Injection'
+    paths:
+      include:
+        - /apps/api/src/**
+        - /packages/**/src/**
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+    patterns:
+      - pattern: eval(...)
+      - pattern-not: eval('(0, () => import.meta.url)')
+      - pattern-not: eval("(0, () => import.meta.url)")
+
+  - id: nest-body-any
+    languages: [typescript]
+    severity: ERROR
+    message: '@Body() typed as any bypasses DTO validation guarantees.'
+    metadata:
+      category: security
+      technology: [nestjs]
+      owasp: 'A08:2021 - Software and Data Integrity Failures'
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @$METHOD(...)
+              $FUNC(..., @Body() $DATA: any, ...) {
+                ...
+              }
+          - pattern: |
+              @$METHOD(...)
+              async $FUNC(..., @Body() $DATA: any, ...) {
+                ...
+              }
+      - metavariable-regex:
+          metavariable: $METHOD
+          regex: 'Post|Put|Patch'
+
+  - id: hardcoded-jwt-secret
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Hardcoded JWT secret detected. Use env/secret manager.
+    metadata:
+      category: security
+    pattern-regex: "jwt[^\\n]*secret\\s*[:=]\\s*['\\\"](?!\\$\\{)[^'\\\"]{32,}"
+
+  - id: weak-random-security-context
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Math.random() is not suitable for security-sensitive values.
+    metadata:
+      category: security
+      owasp: 'A02:2021 - Cryptographic Failures'
+    paths:
+      include:
+        - /apps/api/src/**
+        - /packages/**/src/**
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+        - /packages/db-core/src/seed/**
+        - /packages/test-utils/**
+    patterns:
+      - pattern-either:
+          - pattern: const $VAR = Math.random(...)
+          - pattern: let $VAR = Math.random(...)
+          - pattern: var $VAR = Math.random(...)
+          - pattern: $OBJ.$VAR = Math.random(...)
+          - pattern: '$VAR: Math.random(...)'
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: '(?i).*(token|secret|session|nonce|reset|password|jwt|otp|verification|csrf).*'
+
+  - id: console-log-sensitive-identifiers
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Logging appears to include sensitive identifiers/secrets.
+    metadata:
+      category: security
+      owasp: 'A09:2021 - Security Logging and Monitoring Failures'
+    paths:
+      include:
+        - /apps/api/src/**
+        - /packages/**/src/**
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+        - /scripts/firebase-seed/**
+        - /packages/db-core/src/seed/**
+        - /packages/test-utils/**
+    pattern-regex: "(?m)^\\s*console\\.(log|debug|info|warn|error)\\([^\\n]*(\\$\\{[^}\\n]*(password|secret|token|api[_-]?key|private[_-]?key|ssn|email|phone)[^}\\n]*\\}|(password|secret|token|api[_-]?key|private[_-]?key|ssn|email|phone)\\s*[:=])[^\\n]*\\)"
+
+  - id: api-modules-versioned-controller-required
+    languages: [typescript]
+    severity: ERROR
+    message: Module controllers must use @VersionedController(...) instead of @Controller(...).
+    metadata:
+      category: security
+      technology: [nestjs]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    pattern: '@Controller(...)'
+
+  - id: dangerous-db-delete-without-where
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Destructive delete detected without where-clause scoping.
+    metadata:
+      category: security
+      owasp: 'A01:2021 - Broken Access Control'
+    paths:
+      include:
+        - /apps/api/src/**
+        - /packages/**/src/**
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+        - /packages/db-core/src/seed/**
+        - /packages/test-utils/**
+    patterns:
+      - pattern: $DB.delete($TABLE)
+      - metavariable-regex:
+          metavariable: $DB
+          regex: "^(db|tx|this\\.db|this\\.tx)$"
+      - pattern-not-inside: $DB.delete($TABLE).where(...)
+
+  - id: dangerous-sql-truncate
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: TRUNCATE statements are disallowed in application code.
+    metadata:
+      category: security
+      owasp: 'A01:2021 - Broken Access Control'
+    paths:
+      include:
+        - /apps/api/src/**
+        - /packages/**/src/**
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+        - /packages/db-core/src/seed/**
+        - /packages/test-utils/**
+    patterns:
+      - pattern-either:
+          - pattern: $DB.query($SQL)
+          - pattern: $DB.execute($SQL)
+      - metavariable-regex:
+          metavariable: $SQL
+          regex: "(?i).*\\btruncate\\b.*"
+
+  - id: nest-logger-sensitive-identifiers
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Logger call appears to include sensitive identifiers/secrets.
+    metadata:
+      category: security
+      technology: [nestjs]
+      owasp: 'A09:2021 - Security Logging and Monitoring Failures'
+    paths:
+      include:
+        - /apps/api/src/**
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+    pattern-regex: "this\\.logger\\.(log|debug|info|warn|error|verbose)\\([^\\n]*\\$\\{[^}\\n]*(password|secret|token|api[_-]?key|private[_-]?key|ssn|email|phone)[^}\\n]*\\}[^\\n]*\\)"
+
+  - id: controller-apibearerauth-requires-useguards
+    languages: [typescript]
+    severity: ERROR
+    message: Controller with @ApiBearerAuth() must also declare @UseGuards(...).
+    metadata:
+      category: security
+      technology: [nestjs]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @ApiBearerAuth(...)
+              export class $CONTROLLER {
+                ...
+              }
+          - pattern: |
+              @ApiBearerAuth(...)
+              class $CONTROLLER {
+                ...
+              }
+      - pattern-not-inside: |
+          @ApiBearerAuth(...)
+          @UseGuards(...)
+          export class $CONTROLLER {
+            ...
+          }
+      - pattern-not-inside: |
+          @UseGuards(...)
+          @ApiBearerAuth(...)
+          export class $CONTROLLER {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiBearerAuth(...)
+          @UseGuards(...)
+          class $CONTROLLER {
+            ...
+          }
+      - pattern-not-inside: |
+          @UseGuards(...)
+          @ApiBearerAuth(...)
+          class $CONTROLLER {
+            ...
+          }
+
+  - id: controller-jwt-guards-require-apibearerauth
+    languages: [typescript]
+    severity: ERROR
+    message: Controller with JWT/permission guards should declare @ApiBearerAuth() for OpenAPI parity.
+    metadata:
+      category: security
+      technology: [nestjs]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @UseGuards($GUARDS)
+              export class $CONTROLLER {
+                ...
+              }
+          - pattern: |
+              @UseGuards($GUARDS)
+              class $CONTROLLER {
+                ...
+              }
+      - metavariable-regex:
+          metavariable: $GUARDS
+          regex: '.*(JwtAuthGuard|JwtTenantGuard|EnhancedPermissionsGuard|RolesGuard|CanDeleteUserGuard).*'
+      - pattern-not-inside: |
+          @ApiBearerAuth(...)
+          @UseGuards($GUARDS)
+          export class $CONTROLLER {
+            ...
+          }
+      - pattern-not-inside: |
+          @UseGuards($GUARDS)
+          @ApiBearerAuth(...)
+          export class $CONTROLLER {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiBearerAuth(...)
+          @UseGuards($GUARDS)
+          class $CONTROLLER {
+            ...
+          }
+      - pattern-not-inside: |
+          @UseGuards($GUARDS)
+          @ApiBearerAuth(...)
+          class $CONTROLLER {
+            ...
+          }
+
+  - id: tenant-prefixed-cache-key-constant-required
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Cache key constants with tenant context should start with tenant:{tenantId}:.
+    metadata:
+      category: security
+      technology: [redis]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+    pattern-regex: "const\\s+\\w*Key\\s*=\\s*`(?!tenant:\\$\\{[^}]+\\}:)[^`\\n]*\\$\\{[^}\\n]*tenant[^}\\n]*\\}[^`\\n]*`"
+
+  - id: pii-plaintext-column-disallowed
+    languages: [typescript]
+    severity: ERROR
+    message: Plaintext PII columns are disallowed in persistence schemas; use *Encrypted (+ hash where required).
+    metadata:
+      category: security
+      technology: [drizzle]
+    paths:
+      include:
+        - /packages/db-core/src/schemas/**/*.schema.ts
+      exclude:
+        - /packages/db-core/src/schemas/**/__tests__/**
+    pattern-regex: "\\b(email|phone|phoneNumber|address|ssn|taxId)\\s*:\\s*(varchar|text)\\('(?:email|phone|phone_number|address|ssn|tax_id)'"
+
+  - id: pii-email-hash-requires-email-encrypted
+    languages: [typescript]
+    severity: ERROR
+    message: Schemas with emailHash must also define emailEncrypted.
+    metadata:
+      category: security
+      technology: [drizzle]
+    paths:
+      include:
+        - /packages/db-core/src/schemas/**/*.schema.ts
+      exclude:
+        - /packages/db-core/src/schemas/**/__tests__/**
+    patterns:
+      - pattern-regex: '(?s)pgTable\\(.*\\{.*emailHash\\s*:.*\\}.*\\)'
+      - pattern-not-regex: '(?s)pgTable\\(.*\\{.*emailHash\\s*:.*emailEncrypted\\s*:.*\\}.*\\)'
+
+  - id: pii-provider-email-hash-requires-provider-email-encrypted
+    languages: [typescript]
+    severity: ERROR
+    message: Schemas with providerEmailHash must also define providerEmailEncrypted.
+    metadata:
+      category: security
+      technology: [drizzle]
+    paths:
+      include:
+        - /packages/db-core/src/schemas/**/*.schema.ts
+      exclude:
+        - /packages/db-core/src/schemas/**/__tests__/**
+    patterns:
+      - pattern-regex: '(?s)pgTable\\(.*\\{.*providerEmailHash\\s*:.*\\}.*\\)'
+      - pattern-not-regex: '(?s)pgTable\\(.*\\{.*providerEmailHash\\s*:.*providerEmailEncrypted\\s*:.*\\}.*\\)'
+
+  - id: repository-tenantid-should-be-first-parameter
+    languages: [typescript]
+    severity: ERROR
+    message: Repository methods should take tenantId as the first parameter for consistency and safety.
+    metadata:
+      category: security
+      technology: [multitenancy]
+    paths:
+      include:
+        - /apps/api/src/modules/**/repositories/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+    patterns:
+      - pattern-regex: "(?m)^\\s*(?:public|private|protected)?\\s*(?:async\\s+)?\\w+\\s*\\([^\\)]*,\\s*tenantId\\s*:\\s*[^\\),]+"
+      - pattern-not-regex: "(?m)^\\s*(?:public|private|protected)?\\s*(?:async\\s+)?\\w+\\s*\\(\\s*tenantId\\s*:"
+
+  - id: controller-direct-repository-usage
+    languages: [typescript]
+    severity: ERROR
+    message: Controllers should not call repositories directly; use CQRS handlers/services.
+    metadata:
+      category: security
+      technology: [nestjs, cqrs]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    pattern-regex: "this\\.\\w*(repo|repository)\\w*\\."
+
+  - id: controller-write-endpoint-should-use-commandbus
+    languages: [typescript]
+    severity: ERROR
+    message: Write endpoints should dispatch via CommandBus instead of invoking write service methods directly.
+    metadata:
+      category: security
+      technology: [nestjs, cqrs]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @$HTTP(...)
+              async $METHOD(...) {
+                ...
+                return this.$SERVICE.$CALL(...);
+              }
+          - pattern: |
+              @$HTTP(...)
+              $METHOD(...) {
+                ...
+                return this.$SERVICE.$CALL(...);
+              }
+      - metavariable-regex:
+          metavariable: $HTTP
+          regex: 'Post|Put|Patch|Delete'
+      - metavariable-regex:
+          metavariable: $CALL
+          regex: '(?i)(create|update|delete|remove|register|provision|rotate|replay|link|unlink|set|change|reset|revoke|archive|restore|invalidate).*'
+      - pattern-not-inside: this.commandBus.execute(...)
+
+  - id: openapi-http-endpoint-requires-apioperation
+    languages: [typescript]
+    severity: ERROR
+    message: HTTP endpoints should declare @ApiOperation(...) for OpenAPI completeness.
+    metadata:
+      category: security
+      technology: [nestjs, openapi]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @Get(...)
+              async $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @Post(...)
+              async $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @Put(...)
+              async $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @Patch(...)
+              async $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @Delete(...)
+              async $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @Get(...)
+              $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @Post(...)
+              $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @Put(...)
+              $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @Patch(...)
+              $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @Delete(...)
+              $METHOD(...) {
+                ...
+              }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Get(...)
+          async $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Post(...)
+          async $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Put(...)
+          async $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Patch(...)
+          async $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Delete(...)
+          async $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Get(...)
+          $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Post(...)
+          $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Put(...)
+          $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Patch(...)
+          $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @ApiOperation(...)
+          @Delete(...)
+          $METHOD(...) {
+            ...
+          }
+
+  - id: openapi-get-endpoint-requires-apiokresponse
+    languages: [typescript]
+    severity: ERROR
+    message: GET endpoints should declare @ApiOkResponse(...) (or @ApiResponse(...)) for OpenAPI response contracts.
+    metadata:
+      category: security
+      technology: [nestjs, openapi]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+        - /apps/api/src/modules/**/*-test.controller.ts
+        - /apps/api/src/modules/auth/controllers/**/*.ts
+        - /apps/api/src/modules/system/**/*.ts
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @ApiOperation(...)
+              @Get(...)
+              async $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @ApiOperation(...)
+              @Get(...)
+              $METHOD(...) {
+                ...
+              }
+      - pattern-not-regex: '@Api(OkResponse|Response)\('
+      - pattern-not-regex: '@Public\('
+      - pattern-not-regex: '@ApiExcludeEndpoint\('
+
+  - id: openapi-post-endpoint-requires-apicreatedresponse
+    languages: [typescript]
+    severity: ERROR
+    message: POST endpoints should declare @ApiCreatedResponse(...) (or @ApiResponse(...)) for OpenAPI response contracts.
+    metadata:
+      category: security
+      technology: [nestjs, openapi]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+        - /apps/api/src/modules/**/*-test.controller.ts
+        - /apps/api/src/modules/auth/controllers/**/*.ts
+        - /apps/api/src/modules/system/**/*.ts
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @ApiOperation(...)
+              @Post(...)
+              async $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @ApiOperation(...)
+              @Post(...)
+              $METHOD(...) {
+                ...
+              }
+      - pattern-not-regex: '@Api(CreatedResponse|Response)\('
+      - pattern-not-regex: '@Public\('
+      - pattern-not-regex: '@ApiExcludeEndpoint\('
+
+  - id: openapi-delete-endpoint-requires-apino-content-or-response
+    languages: [typescript]
+    severity: ERROR
+    message: DELETE endpoints should declare @ApiNoContentResponse(...) (or @ApiResponse(...)) for OpenAPI response contracts.
+    metadata:
+      category: security
+      technology: [nestjs, openapi]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+        - /apps/api/src/modules/**/*-test.controller.ts
+        - /apps/api/src/modules/auth/controllers/**/*.ts
+        - /apps/api/src/modules/system/**/*.ts
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @ApiOperation(...)
+              @Delete(...)
+              async $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @ApiOperation(...)
+              @Delete(...)
+              $METHOD(...) {
+                ...
+              }
+      - pattern-not-regex: '@Api(NoContentResponse|Response)\('
+      - pattern-not-regex: '@Public\('
+      - pattern-not-regex: '@ApiExcludeEndpoint\('
+
+  - id: multiwrite-db-flow-should-use-transaction
+    languages: [typescript]
+    severity: ERROR
+    message: Multiple DB write operations in one method should be wrapped in db.transaction(...).
+    metadata:
+      category: security
+      technology: [nestjs, transaction]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.service.ts
+        - /apps/api/src/modules/**/*.handler.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    patterns:
+      - pattern-either:
+          - pattern: |
+              async $METHOD(...) {
+                ...
+                this.db.$WRITE1(...);
+                ...
+                this.db.$WRITE2(...);
+                ...
+              }
+          - pattern: |
+              $METHOD(...) {
+                ...
+                this.db.$WRITE1(...);
+                ...
+                this.db.$WRITE2(...);
+                ...
+              }
+      - metavariable-regex:
+          metavariable: $WRITE1
+          regex: 'insert|update|delete|execute'
+      - metavariable-regex:
+          metavariable: $WRITE2
+          regex: 'insert|update|delete|execute'
+      - pattern-not-inside: this.db.transaction(...)
+
+  # OPA authorization enforcement rules begin below.
+  - id: opa-guard-requires-resource-decorator
+    languages: [typescript]
+    severity: ERROR
+    message: When using OpaGuard, controller must also declare @Resource() decorator to specify resource type and scope.
+    metadata:
+      category: security
+      technology: [nestjs, opa]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @UseGuards(..., OpaGuard)
+              export class $CONTROLLER {
+                ...
+              }
+          - pattern: |
+              @UseGuards(..., OpaGuard)
+              class $CONTROLLER {
+                ...
+              }
+      - pattern-not-inside: |
+          @Resource(...)
+          @UseGuards(..., OpaGuard)
+          export class $CONTROLLER {
+            ...
+          }
+      - pattern-not-inside: |
+          @UseGuards(..., OpaGuard)
+          @Resource(...)
+          export class $CONTROLLER {
+            ...
+          }
+
+  - id: opa-controller-method-requires-action-decorator
+    languages: [typescript]
+    severity: ERROR
+    message: Controller methods with OpaGuard must declare @Action() decorator to specify the action being performed.
+    metadata:
+      category: security
+      technology: [nestjs, opa]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    patterns:
+      - pattern-inside: |
+          @UseGuards(..., OpaGuard)
+          export class $CONTROLLER {
+            ...
+          }
+      - pattern-either:
+          - pattern: |
+              @$HTTP(...)
+              async $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @$HTTP(...)
+              $METHOD(...) {
+                ...
+              }
+      - metavariable-regex:
+          metavariable: $HTTP
+          regex: 'Get|Post|Put|Patch|Delete'
+      - pattern-not-inside: |
+          @Action(...)
+          @$HTTP(...)
+          async $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @$HTTP(...)
+          @Action(...)
+          async $METHOD(...) {
+            ...
+          }
+      - pattern-not-regex: '@Public\('
+      - pattern-not-regex: '@ApiExcludeEndpoint\('
+
+  - id: opa-tenant-resource-requires-scope
+    languages: [typescript]
+    severity: ERROR
+    message: 'Tenant-scoped resources must explicitly specify scope in @Resource decorator for proper permission matching'
+    metadata:
+      category: security
+      technology: [nestjs, opa]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    patterns:
+      - pattern-regex: "@Resource\\(\\{\\s*type:\\s*['\"](?:users|projects|organizations|documents|tenants)['\"]\\s*\\}"
+      - pattern-not-regex: "@Resource\\(\\{\\s*type:\\s*['\"].*['\"],\\s*scope:\\s*['\"](?:tenant|system)['\"]"
+
+  - id: opa-no-hardcoded-permission-strings
+    languages: [typescript]
+    # TODO: Change back to ERROR once @RequirePermissions is migrated to @Action + OpaGuard
+    severity: WARNING
+    message: 'Do not use hardcoded permission strings. Use @Action decorator with OpaGuard instead for policy-based authorization'
+    metadata:
+      category: security
+      technology: [nestjs, opa]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    pattern-regex: "@RequirePermissions\\(\\s*['\"]\\w+:\\w+:\\w+['\"]\\s*\\)"
+
+  - id: opa-system-resource-requires-system-role
+    languages: [typescript]
+    severity: ERROR
+    message: 'System-scoped resources must require system role verification. Ensure OPA policy checks for system_admin or system_owner roles'
+    metadata:
+      category: security
+      technology: [nestjs, opa]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.controller.ts
+      exclude:
+        - /apps/api/src/modules/**/__tests__/**
+        - /apps/api/src/modules/**/*.spec.ts
+        - /apps/api/src/modules/**/*.test.ts
+    patterns:
+      - pattern-regex: "@Resource\\(\\{\\s*type:\\s*['\"](?:tenants|system-settings)['\"],\\s*scope:\\s*['\"]system['\"]"
+      - pattern-not-regex: "@ApiBearerAuth\\(\\)"
+      - pattern-not-regex: "@UseGuards\\(.*OpaGuard"
+
+  # ============================================================================
+  # Multi-Tenancy Enforcement Rules (OPA Integration)
+  # ============================================================================
+
+  - id: opa-tenant-isolation-required
+    languages: [typescript]
+    # TODO: Change back to ERROR once existing queries are migrated to include organization_id
+    severity: WARNING
+    message: 'Queries MUST include organization_id filter for tenant isolation. OPA expects tenant-scoped queries'
+    metadata:
+      category: security
+      technology: [nestjs, drizzle, multitenancy]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+        - '**/__mocks__/**'
+        - '**/examples/**'
+    patterns:
+      - pattern: $DB.select().from($TABLE)
+      - metavariable-regex:
+          metavariable: $DB
+          regex: "^(db|tx|this\\.db|this\\.tx)$"
+      # Common Drizzle patterns with proper tenant scoping
+      - pattern-not-inside: $DB.select().from($TABLE).where(and(eq($TABLE.organizationId, ...), ...))
+      - pattern-not-inside: $DB.select().from($TABLE).where(and(..., eq($TABLE.organizationId, ...), ...))
+      - pattern-not-inside: $DB.select().from($TABLE).where(and(..., ..., eq($TABLE.organizationId, ...)))
+      # Legacy multi-arg where pattern (less common but still valid)
+      - pattern-not-inside: $DB.select().from($TABLE).where(..., eq($TABLE.organizationId, ...), ...)
+      - pattern-not-inside: $DB.select().from($TABLE).where(and(...), ...)
+
+  - id: opa-no-cross-tenant-queries
+    languages: [typescript]
+    severity: ERROR
+    message: 'Cross-tenant queries detected. Use OR with organization_id is prohibited. Each query must be scoped to a single tenant'
+    metadata:
+      category: security
+      technology: [nestjs, drizzle, multitenancy]
+    paths:
+      include:
+        - /apps/api/src/modules/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/docs/**'
+    patterns:
+      - pattern: or(eq($TABLE.organizationId, $T1), eq($TABLE.organizationId, $T2))
+      - metavariable-regex:
+          metavariable: $TABLE
+          regex: '(users|organizations|projects|documents)'

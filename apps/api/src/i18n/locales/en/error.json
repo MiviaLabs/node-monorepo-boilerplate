@@ -1,0 +1,10 @@
+{
+  "invalidInput": "The input provided is invalid",
+  "unauthorized": "You are not authorized to perform this action",
+  "forbidden": "Access to this resource is forbidden",
+  "notFound": "The requested resource was not found",
+  "conflict": "This action conflicts with existing data",
+  "rateLimit": "Too many requests, please try again later",
+  "internal": "An internal error occurred, please try again",
+  "VAL_001": "Invalid value provided: {field}"
+}

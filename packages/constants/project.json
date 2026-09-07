@@ -1,0 +1,40 @@
+{
+  "name": "constants",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/constants/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/constants",
+        "main": "packages/constants/src/index.ts",
+        "tsConfig": "packages/constants/tsconfig.lib.json",
+        "assets": ["packages/constants/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsx --test src/**/*.test.ts",
+        "cwd": "packages/constants"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint src",
+        "cwd": "packages/constants"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "packages/constants"
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:constants", "scope:primitive"]
+}

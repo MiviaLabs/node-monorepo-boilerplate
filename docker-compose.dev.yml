@@ -1,0 +1,283 @@
+# Docker Compose for Local Development
+# This file extends the base docker-compose.yml with additional services
+# for development (Kafka, MinIO, Mailhog, PgAdmin)
+#
+# Usage:
+#   pnpm dev:start      - Start all services
+#   pnpm dev:stop       - Stop all services
+#   pnpm dev:clean      - Stop and remove volumes
+#   pnpm dev:logs       - View logs
+#   pnpm dev:ps         - Show service status
+
+services:
+  # Open Policy Agent (OPA)
+  opa:
+    image: openpolicyagent/opa:0.64.1
+    container_name: mivialabs-opa-dev
+    restart: unless-stopped
+    command: run -s /policies
+    ports:
+      - '8181:8181'
+    volumes:
+      - ./packages/opa/policies/authz:/policies
+    healthcheck:
+      test: ['CMD', '/opa', 'version']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mivialabs-dev-network
+
+  # PostgreSQL Database (from base docker-compose.yml)
+  postgres:
+    image: pgvector/pgvector:pg18
+    container_name: mivialabs-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: starter
+      POSTGRES_PASSWORD: starter_dev
+      POSTGRES_DB: starter_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/02-init-dev.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U starter -d starter_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mivialabs-dev-network
+
+  # Redis Cache
+  redis:
+    image: redis:8-alpine
+    container_name: mivialabs-redis-dev
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data_dev:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mivialabs-dev-network
+
+  # RabbitMQ is optional for local dev; enable only if a RabbitMQ-backed feature is being tested.
+  # rabbitmq:
+  #   image: rabbitmq:4-management-alpine
+  #   container_name: mivialabs-rabbitmq-dev
+  #   restart: unless-stopped
+  #   ports:
+  #     - '5672:5672' # AMQP
+  #     - '15672:15672' # Management UI
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   volumes:
+  #     - rabbitmq_data_dev:/var/lib/rabbitmq
+  #   healthcheck:
+  #     test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - mivialabs-dev-network
+
+  # Zookeeper (for Kafka)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: mivialabs-zookeeper-dev
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2181:2181'
+    volumes:
+      - zookeeper_data_dev:/var/lib/zookeeper/data
+      - zookeeper_log_dev:/var/lib/zookeeper/log
+    healthcheck:
+      test: ['CMD-SHELL', 'echo ruok | nc localhost 2181 && echo imok']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mivialabs-dev-network
+
+  # Kafka Event Streaming
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: mivialabs-kafka-dev
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_HOST://kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    volumes:
+      - kafka_data_dev:/var/lib/kafka/data
+    healthcheck:
+      test: ['CMD-SHELL', 'kafka-broker-api-versions --bootstrap-server localhost:9092']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mivialabs-dev-network
+
+  # MinIO Object Storage (S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: mivialabs-minio-dev
+    restart: unless-stopped
+    ports:
+      - '9000:9000' # API
+      - '9001:9001' # Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ':9001'
+    volumes:
+      - minio_data_dev:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mivialabs-dev-network
+
+  # Mailhog for Email Testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mivialabs-mailhog-dev
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # Web UI
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', 'http://localhost:8025']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mivialabs-dev-network
+
+  # PgAdmin (optional - for database inspection)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: mivialabs-pgadmin-dev
+    restart: unless-stopped
+    ports:
+      - '5050:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mivialabs.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin_data_dev:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mivialabs-dev-network
+    profiles:
+      - admin
+
+  # Jaeger Tracing UI
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: mivialabs-jaeger-dev
+    restart: unless-stopped
+    ports:
+      - '5775:5775/udp' # accept zipkin.thrift over compact thrift protocol
+      - '6831:6831/udp' # accept jaeger.thrift over compact thrift protocol
+      - '6832:6832/udp' # accept jaeger.thrift over binary thrift protocol
+      - '5778:5778' # serve configs
+      - '16686:16686' # Jaeger UI
+      - '14268:14268' # accept model.proto
+      - '14250:14250' # accept gRPC
+      - '9411:9411' # Zipkin compatible endpoint
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: ':9411'
+    networks:
+      - mivialabs-dev-network
+    profiles:
+      - observability
+
+  # Prometheus Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mivialabs-prometheus-dev
+    restart: unless-stopped
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./tools/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - mivialabs-dev-network
+    profiles:
+      - observability
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mivialabs-grafana-dev
+    restart: unless-stopped
+    ports:
+      - '3030:3000'
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SERVER_ROOT_URL: 'http://localhost:3030'
+      GF_INSTALL_PLUGINS: 'grafana-piechart-panel'
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./tools/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./tools/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - mivialabs-dev-network
+    depends_on:
+      - prometheus
+    profiles:
+      - observability
+
+volumes:
+  postgres_data_dev:
+  redis_data_dev:
+  zookeeper_data_dev:
+  zookeeper_log_dev:
+  kafka_data_dev:
+  # rabbitmq_data_dev:
+  minio_data_dev:
+  pgadmin_data_dev:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  mivialabs-dev-network:
+    name: mivialabs-dev-network
+    driver: bridge

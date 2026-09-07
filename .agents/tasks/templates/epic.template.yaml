@@ -1,0 +1,10 @@
+id: TASK-000
+title: Replace with epic title
+status: todo
+
+description: |
+  Describe the outcome, scope boundaries, and any important constraints.
+
+tasks: []
+critical_path: []
+parallel_groups: []

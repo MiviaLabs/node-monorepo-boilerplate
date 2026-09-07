@@ -1,0 +1,206 @@
+- name: orchestrator
+  kind: coordination
+  description: Routes work, chooses teams, enforces policies, loads prior lessons, and closes tasks only with evidence.
+  provider_aliases:
+    codex: orchestrator
+    claude: orchestrator
+    github-copilot: orchestrator
+  capabilities:
+    - intake
+    - routing
+    - dependency-planning
+    - escalation
+    - lesson-selection
+    - prevention-promotion
+
+- name: code-explorer
+  kind: analysis
+  description: Finds relevant files, entrypoints, modules, and runtime boundaries.
+  provider_aliases:
+    codex: code-explorer
+    claude: code-explorer
+    github-copilot: code-explorer
+  capabilities:
+    - file-discovery
+    - architecture-mapping
+
+- name: pattern-matcher
+  kind: analysis
+  description: Finds matching implementations, anti-patterns, and reference examples.
+  provider_aliases:
+    codex: pattern-matcher
+    claude: pattern-matcher
+    github-copilot: pattern-matcher
+  capabilities:
+    - pattern-search
+    - anti-pattern-detection
+
+- name: dependency-analyzer
+  kind: analysis
+  description: Maps package, module, and runtime dependencies.
+  provider_aliases:
+    codex: dependency-analyzer
+    claude: dependency-analyzer
+    github-copilot: dependency-analyzer
+  capabilities:
+    - import-graph
+    - coupling-analysis
+
+- name: planner
+  kind: planning
+  description: Breaks work into executable YAML tasks with ownership, checks, acceptance criteria, and repeat-mistake prevention.
+  provider_aliases:
+    codex: planner
+    claude: planner
+    github-copilot: planner
+  capabilities:
+    - task-breakdown
+    - dependency-graph
+    - preflight-check-planning
+    - lesson-application
+    - performance-budgeting
+    - fallback-contract-planning
+    - critical-path-classification
+    - cache-candidate-rejection
+
+- name: backend-implementer
+  kind: execution
+  description: Implements backend and shared package changes.
+  provider_aliases:
+    codex: backend-implementer
+    claude: backend-implementer
+    github-copilot: backend-implementer
+  capabilities:
+    - api
+    - domain-logic
+    - data-access
+    - read-model-shaping
+    - trace-preservation
+
+- name: frontend-implementer
+  kind: execution
+  description: Implements web UI and browser flows.
+  provider_aliases:
+    codex: frontend-implementer
+    claude: frontend-implementer
+    github-copilot: frontend-implementer
+  capabilities:
+    - ui
+    - client-state
+    - route-flow
+    - server-first-loading
+    - protected-route-performance
+
+- name: test-implementer
+  kind: execution
+  description: Writes and updates unit, integration, and E2E tests.
+  provider_aliases:
+    codex: test-implementer
+    claude: test-implementer
+    github-copilot: test-implementer
+  capabilities:
+    - unit-tests
+    - integration-tests
+    - e2e-tests
+
+- name: reviewer
+  kind: review
+  description: Reviews changed and impacted code for correctness, regressions, policy violations, and repeats of known mistakes.
+  provider_aliases:
+    codex: reviewer
+    claude: reviewer
+    github-copilot: reviewer
+  capabilities:
+    - correctness-review
+    - security-review
+    - regression-review
+    - recurrence-detection
+    - fanout-review
+    - fallback-path-review
+    - critical-path-review
+    - unsafe-cache-review
+
+- name: test-analyzer
+  kind: review
+  description: Explains test failures, coverage gaps, and flaky behavior.
+  provider_aliases:
+    codex: test-analyzer
+    claude: test-analyzer
+    github-copilot: test-analyzer
+  capabilities:
+    - failure-analysis
+    - coverage-analysis
+
+- name: gate-runner
+  kind: validation
+  description: Runs lint, typecheck, tests, optional security scans, and verifies known risk patterns were rechecked.
+  provider_aliases:
+    codex: gate-runner
+    claude: gate-runner
+    github-copilot: gate-runner
+  capabilities:
+    - lint
+    - typecheck
+    - tests
+    - static-analysis
+    - lesson-recheck
+    - budget-evidence-check
+
+- name: api-auth-implementer
+  kind: execution
+  description: Implements auth, session, tenant, and audit-safe API changes in the NestJS backend.
+  provider_aliases:
+    codex: api-auth-implementer
+    claude: api-auth-implementer
+    github-copilot: api-auth-implementer
+  capabilities:
+    - auth-flows
+    - session-handling
+    - tenant-propagation
+    - audit-events
+    - trace-propagation
+    - hot-path-budgeting
+
+- name: api-cqrs-reviewer
+  kind: review
+  description: Reviews NestJS controllers, handlers, repositories, and outbox changes for CQRS correctness and transactional safety.
+  provider_aliases:
+    codex: api-cqrs-reviewer
+    claude: api-cqrs-reviewer
+    github-copilot: api-cqrs-reviewer
+  capabilities:
+    - controller-thinness
+    - handler-review
+    - transaction-review
+    - outbox-review
+    - tenant-scope-review
+    - performance-regression-review
+
+- name: frontend-auth-flow-implementer
+  kind: execution
+  description: Implements protected web and admin auth flows, proxy routes, and session refresh behavior.
+  provider_aliases:
+    codex: frontend-auth-flow-implementer
+    claude: frontend-auth-flow-implementer
+    github-copilot: frontend-auth-flow-implementer
+  capabilities:
+    - nextjs-auth-routes
+    - middleware-auth
+    - cookie-session-flows
+    - proxy-bridges
+    - protected-page-behavior
+    - auth-cost-budgeting
+    - proxy-fanout-review
+
+- name: runtime-alignment-maintainer
+  kind: coordination
+  description: Keeps .agents, provider adapters, and GitHub Copilot instruction surfaces synchronized from the same contract.
+  provider_aliases:
+    codex: runtime-alignment-maintainer
+    claude: runtime-alignment-maintainer
+    github-copilot: runtime-alignment-maintainer
+  capabilities:
+    - runtime-sync
+    - adapter-generation
+    - instructions-alignment
+    - provider-surface-review

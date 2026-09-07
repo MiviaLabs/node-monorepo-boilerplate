@@ -1,0 +1,127 @@
+# OpenTelemetry Collector Configuration for Node Monorepo Boilerplate
+#
+# This collector receives traces, metrics, and logs from applications
+# and exports them to Jaeger (traces) and Prometheus (metrics).
+#
+# Architecture:
+#   Applications -> OTLP (4317/4318) -> Collector -> Jaeger/Prometheus
+#
+# References:
+#   - https://opentelemetry.io/docs/collector/configuration/
+#   - https://github.com/open-telemetry/opentelemetry-collector-contrib
+
+receivers:
+  # OTLP receiver for traces, metrics, and logs
+  # Applications send telemetry via OTLP protocol
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # Prometheus receiver for scraping metrics
+  # Can scrape applications that expose Prometheus metrics endpoint
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 15s
+          static_configs:
+            - targets: ['localhost:8888']
+
+processors:
+  # Batch telemetry before sending to exporters
+  # Reduces network overhead and improves performance
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+    send_batch_max_size: 1024
+
+  # Memory limiter to prevent OOM
+  memory_limiter:
+    limit_mib: 512
+    spike_limit_mib: 128
+    check_interval: 10s
+
+  # Resource detection adds system attributes
+  # detector:env, detector:ec2, detector:gcp
+  resourcedetection:
+    detectors: [env]
+    timeout: 5s
+
+  # Attributes processor adds/removes/modifies attributes
+  attributes:
+    actions:
+      # Add environment attribute
+      - key: environment
+        value: development
+        action: insert
+
+      # Remove sensitive attributes
+      - key: password
+        action: delete
+      - key: secret
+        action: delete
+
+      # Rename service_name to service.name (semantic convention)
+      - key: service_name
+        new_key: service.name
+        action: update
+
+extensions:
+  # Health check extension
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+  # Pprof extension for profiling
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+exporters:
+  # Export traces to Jaeger
+  # Jaeger all-in-one accepts OTLP on port 4317 internally
+  jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: insecure
+
+  # Export metrics to Prometheus
+  # Prometheus pulls metrics from this endpoint
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/v1/write
+    tls:
+      insecure: true
+
+  # Expose metrics for Prometheus scraping
+  prometheus:
+    endpoint: 0.0.0.0:8888
+    namespace: starterkit
+    const_labels:
+      environment: development
+
+  # Debug logging (disable in production)
+  logging:
+    loglevel: debug
+
+service:
+  extensions: [health_check, pprof]
+  pipelines:
+    # Traces pipeline: OTLP -> Batch -> Jaeger
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes, resourcedetection]
+      exporters: [jaeger, logging]
+
+    # Metrics pipeline: OTLP -> Batch -> Prometheus
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, batch, attributes, resourcedetection]
+      exporters: [prometheus, prometheusremotewrite, logging]
+
+    # Logs pipeline: OTLP -> Batch -> Logging (console)
+    # Add additional exporters like Loki, Elasticsearch as needed
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes, resourcedetection]
+      exporters: [logging]

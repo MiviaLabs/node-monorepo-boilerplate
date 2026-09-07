@@ -1,0 +1,330 @@
+import {
+  Module,
+  Global,
+  OnModuleInit,
+  OnApplicationShutdown,
+  DynamicModule,
+  Provider,
+  Inject,
+} from '@nestjs/common';
+
+import { CacheService } from './cache';
+import { createRedisClient, healthCheck as redisHealthCheck, type RedisConfig } from './client';
+import {
+  resolveConfig,
+  type InfrastructureRedisConfig,
+  type ResolvedInfrastructureRedisConfig,
+} from './config';
+import { PubSubService } from './pubsub';
+
+// Re-export services for convenience
+export { CacheService } from './cache';
+export { PubSubService } from './pubsub';
+
+/**
+ * Redis module configuration
+ */
+export interface RedisModuleConfig {
+  /**
+   * Enable graceful shutdown on SIGTERM/SIGINT
+   * @default true
+   */
+  readonly enableGracefulShutdown?: boolean;
+
+  /**
+   * Redis infrastructure configuration
+   * If not provided, environment variables will be used
+   *
+   * This is the new configuration interface that replaces the old `redis` option.
+   */
+  readonly config?: InfrastructureRedisConfig;
+
+  /**
+   * Redis connection configuration (deprecated - use config instead)
+   * @deprecated Use the `config` option instead
+   */
+  readonly redis?: RedisConfig;
+
+  /**
+   * Custom cache service instance
+   * If not provided, a global singleton will be used
+   */
+  readonly cacheService?: CacheService;
+
+  /**
+   * Custom pub/sub service instance
+   * If not provided, a global singleton will be used
+   */
+  readonly pubSubService?: PubSubService;
+}
+
+/**
+ * Global Redis module for NestJS
+ *
+ * This module provides:
+ * - Dependency injection for CacheService and PubSubService
+ * - Redis client initialization with connection pooling
+ * - Graceful shutdown handling
+ * - Health check support
+ *
+ * @example
+ * ```typescript
+ * @Module({
+ *   imports: [RedisModule.forRoot()],
+ * })
+ * export class AppModule {}
+ *
+ * @Injectable()
+ * export class UsersService {
+ *   constructor(
+ *     private readonly cache: CacheService,
+ *   ) {}
+ *
+ *   async getUser(id: string) {
+ *     return this.cache.getOrSet(
+ *       `user:${id}`,
+ *       () => this.db.findUser(id),
+ *       { ttl: 300 }
+ *     );
+ *   }
+ * }
+ * ```
+ */
+@Global()
+@Module({
+  imports: [],
+  providers: [
+    {
+      provide: CacheService,
+      useClass: CacheService,
+    },
+    {
+      provide: PubSubService,
+      useClass: PubSubService,
+    },
+  ],
+  exports: [CacheService, PubSubService],
+})
+export class RedisModule implements OnModuleInit, OnApplicationShutdown {
+  private static config: RedisModuleConfig | null = null;
+  private static client: ReturnType<typeof createRedisClient> | null = null;
+
+  constructor(
+    @Inject(CacheService) private readonly cacheService?: CacheService,
+    @Inject(PubSubService) private readonly pubSubService?: PubSubService
+  ) {}
+
+  /**
+   * Initialize Redis client on module init
+   */
+  async onModuleInit(): Promise<void> {
+    if (!RedisModule.client) {
+      const resolvedConfig = this.getResolvedConfig();
+      RedisModule.client = createRedisClient(resolvedConfig.connection);
+    }
+
+    // Setup graceful shutdown if enabled
+    if (RedisModule.config?.enableGracefulShutdown !== false) {
+      this.setupGracefulShutdown();
+    }
+  }
+
+  /**
+   * Close Redis connection on application shutdown
+   */
+  async onApplicationShutdown(): Promise<void> {
+    // Close main Redis client
+    if (RedisModule.client) {
+      await RedisModule.client.quit();
+      RedisModule.client = null;
+    }
+
+    // PubSubService cleanup is handled by its OnModuleDestroy lifecycle hook
+  }
+
+  /**
+   * Setup graceful shutdown handlers
+   */
+  private setupGracefulShutdown(): void {
+    const shutdownHandler = async () => {
+      await this.onApplicationShutdown();
+    };
+
+    process.once('SIGTERM', () => {
+      shutdownHandler().catch((error) => {
+        console.error('Error during Redis graceful shutdown:', error);
+        process.exit(1);
+      });
+    });
+
+    process.once('SIGINT', () => {
+      shutdownHandler().catch((error) => {
+        console.error('Error during Redis graceful shutdown:', error);
+        process.exit(1);
+      });
+    });
+  }
+
+  /**
+   * Get resolved configuration
+   */
+  private getResolvedConfig(): ResolvedInfrastructureRedisConfig {
+    // If new config option is provided, use it
+    if (RedisModule.config?.config) {
+      return resolveConfig(RedisModule.config.config);
+    }
+
+    // If old redis option is provided (backward compatibility)
+    if (RedisModule.config?.redis) {
+      return resolveConfig({
+        connection: RedisModule.config.redis,
+      });
+    }
+
+    // Default: use environment variables and defaults
+    return resolveConfig();
+  }
+
+  /**
+   * Configure Redis module
+   *
+   * @example
+   * ```typescript
+   * @Module({
+   *   imports: [RedisModule.forRoot({
+   *     config: {
+   *       connection: {
+   *         host: 'localhost',
+   *         port: 6379,
+   *       },
+   *       cache: {
+   *         defaultTtl: 600,
+   *       },
+   *     },
+   *     enableGracefulShutdown: true
+   *   })],
+   * })
+   * export class AppModule {}
+   * ```
+   */
+  static forRoot(config: RedisModuleConfig = {}): DynamicModule {
+    RedisModule.config = config;
+
+    // Initialize Redis client if config provided
+    if (config.config?.connection) {
+      const resolvedConfig = resolveConfig(config.config);
+      RedisModule.client = createRedisClient(resolvedConfig.connection);
+    } else if (config.redis) {
+      // Backward compatibility with old redis option
+      RedisModule.client = createRedisClient(config.redis);
+    }
+
+    const providers: Provider[] = [
+      {
+        provide: CacheService,
+        useValue: config.cacheService ?? new CacheService(),
+      },
+      {
+        provide: PubSubService,
+        useValue: config.pubSubService ?? new PubSubService(),
+      },
+    ];
+
+    return {
+      module: RedisModule,
+      providers,
+      exports: [CacheService, PubSubService],
+    };
+  }
+
+  /**
+   * Configure Redis module with async configuration
+   *
+   * @example
+   * ```typescript
+   * @Module({
+   *   imports: [
+   *     RedisModule.forRootAsync({
+   *       imports: [ConfigModule],
+   *       inject: [ConfigService],
+   *       useFactory: (config: ConfigService) => ({
+   *         config: {
+   *           connection: {
+   *             host: config.get('REDIS_HOST', 'localhost'),
+   *             port: config.get('REDIS_PORT', 6379),
+   *             password: config.get('REDIS_PASSWORD'),
+   *             db: config.get('REDIS_DB', 0),
+   *           },
+   *           cache: {
+   *             defaultTtl: config.get('REDIS_DEFAULT_TTL', 300),
+   *           },
+   *         },
+   *         enableGracefulShutdown: config.get('REDIS_GRACEFUL_SHUTDOWN', 'true') === 'true',
+   *       }),
+   *     }),
+   *   ],
+   * })
+   * export class AppModule {}
+   * ```
+   */
+  static forRootAsync(options: {
+    useFactory: (...args: unknown[]) => Promise<RedisModuleConfig> | RedisModuleConfig;
+    inject?: unknown[];
+    imports?: DynamicModule[];
+  }): DynamicModule {
+    return {
+      module: RedisModule,
+      imports: options.imports ?? [],
+      providers: [
+        {
+          provide: 'REDIS_CONFIG',
+          useFactory: async (...args: unknown[]) => {
+            const config = await options.useFactory(...args);
+            RedisModule.config = config;
+
+            // Initialize Redis client if config provided
+            if (config.config?.connection) {
+              const resolvedConfig = resolveConfig(config.config);
+              RedisModule.client = createRedisClient(resolvedConfig.connection);
+            } else if (config.redis) {
+              // Backward compatibility with old redis option
+              RedisModule.client = createRedisClient(config.redis);
+            }
+
+            return config;
+          },
+          inject: (options.inject ?? []) as string[],
+        },
+        {
+          provide: CacheService,
+          useFactory: (config: RedisModuleConfig) => config.cacheService ?? new CacheService(),
+          inject: ['REDIS_CONFIG'],
+        },
+        {
+          provide: PubSubService,
+          useFactory: (config: RedisModuleConfig) => config.pubSubService ?? new PubSubService(),
+          inject: ['REDIS_CONFIG'],
+        },
+      ],
+      exports: [CacheService, PubSubService],
+    };
+  }
+
+  /**
+   * Health check for Redis connectivity
+   *
+   * @returns true if Redis is healthy, false otherwise
+   *
+   * @example
+   * ```typescript
+   * @Get('health')
+   * async healthCheck() {
+   *   const isHealthy = await RedisModule.healthCheck();
+   *   return { status: isHealthy ? 'ok' : 'unhealthy' };
+   * }
+   * ```
+   */
+  static async healthCheck(): Promise<boolean> {
+    return redisHealthCheck();
+  }
+}

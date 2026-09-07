@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.app.json",
+  "compilerOptions": {
+    "outDir": "../../../dist/apps/api/scripts",
+    "rootDir": "..",
+    "module": "commonjs",
+    "target": "es2021",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "ignoreDeprecations": "6.0"
+  },
+  "include": ["./**/*.ts", "../src/**/*.ts"],
+  "exclude": ["../src/**/*.spec.ts", "../src/**/*.test.ts", "../test/**/*.ts"]
+}

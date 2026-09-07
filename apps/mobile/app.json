@@ -1,0 +1,11 @@
+{
+  "name": "Mobile",
+  "slug": "mobile",
+  "version": "0.0.1",
+  "orientation": "portrait",
+  "userInterfaceStyle": "automatic",
+  "platforms": ["ios", "android"],
+  "experiments": {
+    "typedRoutes": true
+  }
+}

@@ -1,0 +1,89 @@
+# Prometheus Configuration for Node Monorepo Boilerplate
+#
+# Prometheus scrapes metrics from:
+#   1. OTEL Collector (application metrics via OpenTelemetry)
+#   2. OTEL Collector's own metrics
+#   3. Node Exporter (system metrics, optional)
+#   4. cAdvisor (container metrics, optional)
+#
+# References:
+#   - https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+
+global:
+  # How frequently to evaluate rules
+  scrape_interval: 15s
+  # How frequently to scrape targets
+  evaluation_interval: 15s
+  # Timeout for scrape requests
+  scrape_timeout: 10s
+  # External labels (attach to all metrics)
+  external_labels:
+    environment: 'development'
+    cluster: 'local'
+
+# Alerting configuration (optional - add Alertmanager for alerts)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: []
+
+# Rule files (optional - add recording/altering rules)
+# rule_files:
+#   - 'alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # OTEL Collector metrics endpoint
+  # Contains application metrics forwarded via OTLP
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8888']
+        labels:
+          service: 'otel-collector'
+          cluster: 'local'
+
+  # OTEL Collector's own metrics (internal operations)
+  - job_name: 'otel-collector-self'
+    static_configs:
+      - targets: ['otel-collector:8889']
+        labels:
+          service: 'otel-collector-internal'
+          cluster: 'local'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # Grafana metrics (optional)
+  # - job_name: 'grafana'
+  #   static_configs:
+  #     - targets: ['grafana:3000']
+  #       labels:
+  #         service: 'grafana'
+
+  # Example: Scrape applications directly
+  # Use this if applications expose /metrics endpoint
+  # - job_name: 'api'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:3000']
+  #       labels:
+  #         service: 'api'
+
+  # Example: Node Exporter for system metrics
+  # Run: docker run -d --name node-exporter -p 9100:9100 prom/node-exporter
+  # - job_name: 'node-exporter'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:9100']
+  #       labels:
+  #         service: 'node-exporter'
+
+  # Example: cAdvisor for container metrics
+  # Run: docker run -d --name cadvisor -p 8080:8080 google/cadvisor
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:8080']
+  #       labels:
+  #         service: 'cadvisor'

@@ -1,0 +1,37 @@
+# TruffleHog Configuration
+# Security-focused secret scanner for git history and working tree
+# Docs: https://github.com/trufflesecurity/trufflehog
+
+# Detectors to use (empty = all)
+detectors: []
+
+# Results filtering
+only_verified: false
+
+# Entropy analysis tuning
+# Higher values reduce false positives but may miss some secrets
+# entropy_threshold: 4.0
+
+# Paths to exclude from scanning
+exclude_paths:
+  # Build outputs
+  - dist/
+  - build/
+  - .next/
+  - node_modules/
+
+  # Test fixtures (may contain fake secrets for testing)
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - '**/test/fixtures/**'
+  - '**/tests/fixtures/**'
+
+  # Documentation
+  - '*.md'
+  - docs/
+
+  # Lock files
+  - pnpm-lock.yaml
+  - package-lock.json
+  - yarn.lock
+

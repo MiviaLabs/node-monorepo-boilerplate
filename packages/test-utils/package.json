@@ -1,0 +1,23 @@
+{
+  "name": "@package/test-utils",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "@package/db-outbox": "workspace:*",
+    "@package/db-core": "workspace:*",
+    "drizzle-orm": "0.45.2",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.0",
+    "@types/pg": "^8.15.6",
+    "pg": "^8.17.1"
+  },
+  "optionalDependencies": {
+    "@testcontainers/kafka": "^10.0.0",
+    "@testcontainers/postgresql": "^10.0.0",
+    "@testcontainers/redis": "^10.0.0",
+    "testcontainers": "^10.0.0"
+  }
+}

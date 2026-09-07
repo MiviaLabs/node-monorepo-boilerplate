@@ -1,0 +1,467 @@
+$id: https://mivialabs.dev/schema/agentic-task.schema.json
+$schema: http://json-schema.org/draft-07/schema#
+title: AgenticTask
+type: object
+additionalProperties: false
+required:
+  - id
+  - title
+  - type
+  - status
+  - owner_agent
+  - description
+  - acceptance_criteria
+  - risk_areas
+  - prior_lessons_reviewed
+  - preflight_checks
+  - avoid_repeat_mistakes
+  - files
+  - dependencies
+  - required_checks
+  - required_reviews
+  - evidence
+
+properties:
+  id:
+    type: string
+    pattern: '^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$'
+  title:
+    type: string
+    minLength: 5
+  type:
+    type: string
+    enum: [research, planning, implementation, review, validation]
+  status:
+    type: string
+    enum: [todo, in_progress, done, blocked]
+  owner_agent:
+    type: string
+    enum:
+      - orchestrator
+      - code-explorer
+      - pattern-matcher
+      - dependency-analyzer
+      - planner
+      - backend-implementer
+      - frontend-implementer
+      - test-implementer
+      - reviewer
+      - test-analyzer
+      - gate-runner
+      - api-auth-implementer
+      - api-cqrs-reviewer
+      - frontend-auth-flow-implementer
+      - runtime-alignment-maintainer
+  preferred_provider:
+    anyOf:
+      - type: 'null'
+      - type: string
+        enum:
+          - codex
+          - claude
+          - gemini
+          - github-copilot
+  description:
+    type: string
+    minLength: 20
+  request_context:
+    type: object
+    additionalProperties: false
+    required:
+      - original_request
+      - normalized_request
+      - improvement_mode
+      - missing_information
+      - execution_brief
+    properties:
+      original_request:
+        type: string
+        minLength: 1
+      normalized_request:
+        type: string
+        minLength: 1
+      improvement_mode:
+        type: string
+        enum: [none, normalized, clarification_required]
+      missing_information:
+        type: array
+        items:
+          type: string
+      execution_brief:
+        type: array
+        items:
+          type: string
+  acceptance_criteria:
+    type: array
+    minItems: 1
+    items:
+      type: string
+  risk_areas:
+    type: array
+    uniqueItems: true
+    items:
+      type: string
+      enum:
+        - auth
+        - audit
+        - api-contracts
+        - backend
+        - admin
+        - admin-auth
+        - admin-ui
+        - compliance
+        - contract
+        - cqrs
+        - dashboard
+        - dashboard-state
+        - session
+        - tenant-routing
+        - tenant-safety
+        - protected-flow
+        - api
+        - data
+        - database
+        - db-read-models
+        - design-system
+        - migration
+        - queue
+        - jobs
+        - reliability
+        - routing
+        - ui
+        - testing
+        - regression
+        - docs
+        - documentation
+        - config
+        - security
+        - performance
+        - latency
+        - cache
+        - storage
+        - upload
+        - tracing
+        - web
+        - frontend
+        - multi-tenancy
+        - events
+        - event-replay
+        - observability
+        - integrations
+        - packages
+        - privacy
+        - reporting
+        - react
+        - nestjs
+        - iam
+  prior_lessons_reviewed:
+    type: array
+    items:
+      type: string
+  preflight_checks:
+    type: array
+    items:
+      type: string
+  memory_reference:
+    type: string
+    const: .agents/memories/MEMORY.md
+  avoid_repeat_mistakes:
+    type: array
+    items:
+      type: string
+  files:
+    type: object
+    additionalProperties: false
+    required: [create, modify, delete]
+    properties:
+      create:
+        type: array
+        items:
+          type: string
+      modify:
+        type: array
+        items:
+          type: string
+      delete:
+        type: array
+        items:
+          type: string
+  dependencies:
+    type: array
+    items:
+      type: string
+      pattern: '^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$'
+  required_checks:
+    type: array
+    uniqueItems: true
+    items:
+      type: string
+      enum:
+        - lint
+        - typecheck
+        - test_unit
+        - test_integration
+        - test_e2e
+        - static_analysis
+        - review_scheduler_retries
+  required_reviews:
+    type: array
+    uniqueItems: true
+    items:
+      type: string
+      enum:
+        - review_impacted_code
+        - verify_assumptions
+        - review_audit_decisions
+  required_skills:
+    type: array
+    uniqueItems: true
+    items:
+      type: string
+  required_e2e:
+    type: boolean
+  evidence:
+    type: object
+    additionalProperties: false
+    properties:
+      prior_lessons_reviewed:
+        type: array
+        items:
+          type: string
+      status:
+        type: [string, 'null']
+        enum: [passed, failed, blocked, null]
+      summary:
+        type: [string, 'null']
+      files_changed:
+        type: array
+        items:
+          type: string
+      commands_run:
+        type: array
+        items:
+          type: string
+      checks:
+        type: object
+        additionalProperties:
+          type: string
+          enum: [passed, failed, skipped]
+      reviews:
+        type: object
+        additionalProperties:
+          type: string
+          enum: [passed, failed, skipped]
+      skills_loaded:
+        type: array
+        items:
+          type: string
+      assumptions_verified:
+        type: array
+        items:
+          type: string
+      mistakes_observed:
+        type: array
+        items:
+          type: string
+      lessons_captured:
+        type: array
+        items:
+          type: string
+      new_or_updated_rules:
+        type: array
+        items:
+          type: string
+      future_checks_required:
+        type: array
+        items:
+          type: string
+      recurrence_risk:
+        type: [string, 'null']
+        enum: [low, medium, high, null]
+      residual_risks:
+        type: array
+        items:
+          type: string
+      blockers:
+        type: array
+        items:
+          type: string
+allOf:
+  - if:
+      properties:
+        risk_areas:
+          contains:
+            enum: [auth, session, tenant-routing, protected-flow, migration, queue, jobs, security]
+    then:
+      properties:
+        prior_lessons_reviewed:
+          minItems: 1
+        preflight_checks:
+          minItems: 1
+        avoid_repeat_mistakes:
+          minItems: 1
+  - if:
+      properties:
+        required_e2e:
+          const: true
+    then:
+      properties:
+        required_checks:
+          contains:
+            const: test_e2e
+  - if:
+      properties:
+        status:
+          const: done
+    then:
+      properties:
+        evidence:
+          required:
+            - prior_lessons_reviewed
+            - status
+            - summary
+            - files_changed
+            - commands_run
+            - checks
+            - reviews
+            - assumptions_verified
+            - mistakes_observed
+            - lessons_captured
+            - new_or_updated_rules
+            - future_checks_required
+            - recurrence_risk
+            - residual_risks
+          properties:
+            prior_lessons_reviewed:
+              type: array
+              items:
+                type: string
+            status:
+              type: string
+              enum: [passed, failed, blocked]
+            summary:
+              type: string
+              minLength: 1
+            recurrence_risk:
+              type: string
+              enum: [low, medium, high]
+  - if:
+      properties:
+        status:
+          const: blocked
+    then:
+      properties:
+        evidence:
+          properties:
+            prior_lessons_reviewed:
+              type: array
+              items:
+                type: string
+            status:
+              enum: [blocked, null]
+            blockers:
+              minItems: 1
+  - if:
+      properties:
+        status:
+          const: done
+        required_checks:
+          contains:
+            const: lint
+    then:
+      properties:
+        evidence:
+          properties:
+            checks:
+              required: [lint]
+  - if:
+      properties:
+        status:
+          const: done
+        required_checks:
+          contains:
+            const: typecheck
+    then:
+      properties:
+        evidence:
+          properties:
+            checks:
+              required: [typecheck]
+  - if:
+      properties:
+        status:
+          const: done
+        required_checks:
+          contains:
+            const: test_unit
+    then:
+      properties:
+        evidence:
+          properties:
+            checks:
+              required: [test_unit]
+  - if:
+      properties:
+        status:
+          const: done
+        required_checks:
+          contains:
+            const: test_integration
+    then:
+      properties:
+        evidence:
+          properties:
+            checks:
+              required: [test_integration]
+  - if:
+      properties:
+        status:
+          const: done
+        required_checks:
+          contains:
+            const: test_e2e
+    then:
+      properties:
+        evidence:
+          properties:
+            checks:
+              required: [test_e2e]
+  - if:
+      properties:
+        status:
+          const: done
+        required_checks:
+          contains:
+            const: static_analysis
+    then:
+      properties:
+        evidence:
+          properties:
+            checks:
+              required: [static_analysis]
+  - if:
+      properties:
+        status:
+          const: done
+        required_reviews:
+          contains:
+            const: review_impacted_code
+    then:
+      properties:
+        evidence:
+          properties:
+            reviews:
+              required: [review_impacted_code]
+  - if:
+      properties:
+        status:
+          const: done
+        required_reviews:
+          contains:
+            const: verify_assumptions
+    then:
+      properties:
+        evidence:
+          properties:
+            reviews:
+              required: [verify_assumptions]

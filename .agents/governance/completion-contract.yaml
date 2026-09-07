@@ -1,0 +1,76 @@
+purpose: Define the evidence required to close a task.
+applies: Every task closure, with stricter task-specific requirements allowed.
+verification: Validate this shape before writing colocated evidence.
+authority: The task runtime enforces this contract; higher-priority instructions prevail.
+
+required:
+  - prior_lessons_reviewed
+  - status
+  - summary
+  - files_changed
+  - commands_run
+  - checks
+  - reviews
+  - assumptions_verified
+  - mistakes_observed
+  - lessons_captured
+  - new_or_updated_rules
+  - future_checks_required
+  - recurrence_risk
+  - residual_risks
+
+schema:
+  prior_lessons_reviewed:
+    type: array
+    items:
+      type: string
+  status:
+    enum: [passed, failed, blocked]
+  summary:
+    type: string
+  files_changed:
+    type: array
+    items:
+      type: string
+  commands_run:
+    type: array
+    items:
+      type: string
+  checks:
+    type: object
+    additionalProperties:
+      enum: [passed, failed, skipped]
+  reviews:
+    type: object
+    additionalProperties:
+      enum: [passed, failed, skipped]
+  assumptions_verified:
+    type: array
+    items:
+      type: string
+  mistakes_observed:
+    type: array
+    items:
+      type: string
+  lessons_captured:
+    type: array
+    items:
+      type: string
+  new_or_updated_rules:
+    type: array
+    items:
+      type: string
+  future_checks_required:
+    type: array
+    items:
+      type: string
+  recurrence_risk:
+    enum: [low, medium, high]
+  residual_risks:
+    type: array
+    items:
+      type: string
+  blockers:
+    type: array
+    items:
+      type: string

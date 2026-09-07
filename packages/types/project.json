@@ -1,0 +1,40 @@
+{
+  "name": "types",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/types/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/types",
+        "main": "packages/types/src/index.ts",
+        "tsConfig": "packages/types/tsconfig.lib.json",
+        "assets": ["packages/types/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsx --test src/**/*.test.ts",
+        "cwd": "packages/types"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint src",
+        "cwd": "packages/types"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "packages/types"
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:types", "scope:primitive"]
+}

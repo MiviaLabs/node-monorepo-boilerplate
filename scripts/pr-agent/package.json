@@ -1,0 +1,19 @@
+{
+  "name": "@package/pr-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm -C ../.. exec vitest run --passWithNoTests --root scripts/pr-agent"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.1.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4",
+    "typescript": "6.0.3",
+    "vitest": "^4.0.18"
+  }
+}

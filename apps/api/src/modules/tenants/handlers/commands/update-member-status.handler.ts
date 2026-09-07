@@ -1,0 +1,167 @@
+import { randomUUID } from 'node:crypto';
+
+import { Inject, Logger } from '@nestjs/common';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { and, eq, organizations, type NodePgDatabase, userTenants } from '@package/db-core';
+import { Errors } from '@package/errors';
+import { OutboxRepository } from '@package/events';
+
+import { MAIN_DB } from '../../../../common/database/database.constants';
+import { UpdateMemberStatusCommand } from '../../commands/update-member-status.command';
+import { MemberStatus } from '../../dto/update-member-status.dto';
+import { buildTenantAuditEvent } from '../../events/tenant-audit-event';
+
+/**
+ * Update member status command handler
+ *
+ * Handles updating a tenant member's status.
+ * Maps status to isActive boolean: active=true, all other statuses=false.
+ */
+@CommandHandler(UpdateMemberStatusCommand)
+export class UpdateMemberStatusHandler implements ICommandHandler<UpdateMemberStatusCommand> {
+  private readonly logger = new Logger(UpdateMemberStatusHandler.name);
+
+  constructor(
+    private readonly outboxRepo: OutboxRepository,
+    @Inject(MAIN_DB) private readonly db: NodePgDatabase
+  ) {}
+
+  async execute(command: UpdateMemberStatusCommand): Promise<{
+    memberId: number;
+    userId: number;
+    tenantId: number;
+    role: string;
+    isActive: boolean;
+    status: string;
+    updatedAt: Date;
+  }> {
+    this.logger.debug(
+      `Updating member ${command.memberId} status to ${command.status} in tenant: ${command.tenantId} by actor: ${command.actorId}`
+    );
+
+    // Validate tenantId is a valid number
+    const organizationId = Number(command.tenantId);
+    if (!Number.isInteger(organizationId) || organizationId <= 0) {
+      throw Errors.validationinvalidValueFor002({
+        field: 'tenantId',
+        expectedType: 'positive integer'
+      });
+    }
+
+    // Validate memberId is a valid number
+    const memberId = Number(command.memberId);
+    if (!Number.isInteger(memberId) || memberId <= 0) {
+      throw Errors.validationinvalidValueFor002({
+        field: 'memberId',
+        expectedType: 'positive integer'
+      });
+    }
+
+    // Step 1: Validation (before transaction)
+    const [organization] = await this.db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, organizationId))
+      .limit(1);
+
+    if (!organization) {
+      throw Errors.databaserecordNotFound004({ entity: 'Organization' });
+    }
+
+    // Get current membership to verify it exists
+    const [currentMembership] = await this.db
+      .select()
+      .from(userTenants)
+      .where(and(eq(userTenants.userId, memberId), eq(userTenants.tenantId, organization.tenantId)))
+      .limit(1);
+
+    if (!currentMembership) {
+      throw Errors.databaserecordNotFound004({ entity: 'UserTenant' });
+    }
+
+    // Map status to isActive boolean
+    // active = true, all other supported statuses = false
+    const isActive = command.status === MemberStatus.ACTIVE;
+
+    // Cannot deactivate owner
+    if (currentMembership.role === 'tenant_owner' && !isActive) {
+      throw Errors.authinsufficientPermissionsRequiredpermission004({
+        requiredPermission: 'Cannot deactivate owner'
+      });
+    }
+
+    // Step 2: Single transaction for all writes
+    const result = await this.db.transaction(async (tx) => {
+      // Update the status (isActive field)
+      const [updated] = await tx
+        .update(userTenants)
+        .set({
+          isActive,
+          updatedAt: new Date()
+        })
+        .where(
+          and(eq(userTenants.userId, memberId), eq(userTenants.tenantId, organization.tenantId))
+        )
+        .returning();
+
+      if (!updated) {
+        throw Errors.databaserecordNotFound004({ entity: 'UserTenant' });
+      }
+
+      // Insert outbox event
+      await this.outboxRepo.insert(tx, {
+        eventId: randomUUID(),
+        eventType: 'tenant.member.status.updated',
+        aggregateId: String(memberId),
+        aggregateVersion: '1',
+        payload: {
+          tenantId: String(organizationId),
+          userId: String(memberId),
+          previousStatus: currentMembership.isActive ? 'active' : 'inactive',
+          newStatus: command.status,
+          updatedBy: command.actorId,
+          updatedAt: new Date().toISOString()
+        },
+        correlationId: command.correlationId,
+        causationId: command.causationId,
+        tenantId: String(organizationId),
+        schemaVersion: '1.0'
+      });
+
+      await this.outboxRepo.insert(
+        tx,
+        buildTenantAuditEvent({
+          eventType: 'tenant.member.status.updated.audit',
+          tenantId: organizationId,
+          actorId: command.actorId,
+          requestId: command.requestId,
+          aggregateId: memberId,
+          action: 'UPDATE_MEMBER_STATUS',
+          details: {
+            userId: String(memberId),
+            previousStatus: currentMembership.isActive ? 'active' : 'inactive',
+            newStatus: command.status
+          },
+          correlationId: command.correlationId,
+          causationId: command.causationId
+        })
+      );
+
+      return updated;
+    });
+
+    this.logger.log(
+      `Member ${memberId} status updated to ${command.status} (isActive: ${isActive}) in tenant ${organizationId}`
+    );
+
+    return {
+      memberId,
+      userId: result.userId,
+      tenantId: result.tenantId,
+      role: result.role,
+      isActive: result.isActive,
+      status: command.status,
+      updatedAt: result.updatedAt
+    };
+  }
+}

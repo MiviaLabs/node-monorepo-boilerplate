@@ -1,0 +1,26 @@
+import type { CreateProjectDto } from '../dto';
+import type { RequestTrace } from '@/common/cqrs/request-trace';
+import type { ICommand } from '@package/types';
+
+export class CreateProjectCommand implements ICommand {
+  readonly readonly = true;
+  readonly requestId?: string;
+  readonly correlationId?: string;
+  readonly causationId?: string;
+
+  constructor(
+    public readonly tenantId: string,
+    public readonly userId: string,
+    public readonly actorId: string,
+    public readonly dto: CreateProjectDto,
+    trace: RequestTrace = {}
+  ) {
+    this.requestId = trace.requestId;
+    if (trace.correlationId !== undefined) {
+      this.correlationId = trace.correlationId;
+    }
+    if (trace.causationId !== undefined) {
+      this.causationId = trace.causationId;
+    }
+  }
+}

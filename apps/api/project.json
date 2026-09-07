@@ -1,0 +1,142 @@
+{
+  "name": "api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/api/src",
+  "projectType": "application",
+  "tags": ["scope:app"],
+  "implicitDependencies": [
+    "errors",
+    "db-core",
+    "auth",
+    "core",
+    "events",
+    "observability",
+    "queues",
+    "redis"
+  ],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "webpack-cli build",
+        "args": ["--node-env=production"],
+        "cwd": "apps/api"
+      },
+      "configurations": {
+        "development": {
+          "args": ["--node-env=development"]
+        }
+      }
+    },
+    "prune-lockfile": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "executor": "@nx/js:prune-lockfile",
+      "outputs": [
+        "{workspaceRoot}/dist/apps/api/package.json",
+        "{workspaceRoot}/dist/apps/api/pnpm-lock.yaml",
+        "{workspaceRoot}/dist/apps/api/pnpm-workspace.yaml",
+        "{workspaceRoot}/dist/apps/api/patches",
+        "{workspaceRoot}/dist/apps/api/local_path_modules"
+      ],
+      "options": {
+        "buildTarget": "build"
+      },
+      "inputs": [
+        "default",
+        "^default",
+        "{workspaceRoot}/pnpm-workspace.yaml",
+        "{workspaceRoot}/package.json",
+        {
+          "runtime": "node -e \"try{console.log('pnpm major '+require('child_process').execSync('pnpm --version',{stdio:['ignore','pipe','ignore']}).toString().trim().split('.')[0])}catch{console.log('pnpm major unavailable')}\""
+        }
+      ]
+    },
+    "copy-workspace-modules": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "outputs": ["{workspaceRoot}/dist/apps/api/workspace_modules"],
+      "executor": "@nx/js:copy-workspace-modules",
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "prune": {
+      "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
+      "executor": "nx:noop"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "api:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "api:build:development"
+        },
+        "production": {
+          "buildTarget": "api:build:production"
+        }
+      }
+    },
+    "serve:dev": {
+      "description": "Run API in development mode without webpack bundling (needed for Swagger UI static assets)",
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "NODE_ENV=development SWAGGER_ENABLED=true node dist/apps/api/main.js",
+        "cwd": "."
+      }
+    },
+    "start": {
+      "description": "Run API directly with ts-node dev (no bundling, full Swagger support)",
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ts-node src/main.ts",
+        "cwd": "apps/api"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "pnpm exec eslint src",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "tsc --project tsconfig.app.json --noEmit"
+          }
+        ],
+        "cwd": "apps/api",
+        "parallel": false
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/coverage/apps/api"],
+      "options": {
+        "command": "pnpm jest --config apps/api/jest.config.js --detectOpenHandles --forceExit",
+        "cwd": "."
+      }
+    },
+    "test:file": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm jest --config jest.config.js --runTestsByPath",
+        "cwd": "apps/api",
+        "forwardAllArgs": true
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --project tsconfig.app.json --noEmit",
+        "cwd": "apps/api"
+      }
+    }
+  }
+}

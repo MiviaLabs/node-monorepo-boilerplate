@@ -1,0 +1,344 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [dev, staging, main]
+  pull_request:
+    branches: [dev, staging, main]
+  schedule:
+    - cron: '0 2 * * *' # Nightly at 02:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  semgrep:
+    name: Semgrep Scan
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    # PRs are blocking; non-PR runs remain advisory for trend monitoring.
+    continue-on-error: ${{ github.event_name != 'pull_request' }}
+    container:
+      # Pinned to 1.102.0 for reproducibility; update periodically for security patches
+      image: semgrep/semgrep:1.102.0
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Run Semgrep
+        id: semgrep_json
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            SEMGREP_SEVERITY="ERROR"
+          else
+            SEMGREP_SEVERITY="WARNING"
+          fi
+
+          set +e
+          semgrep scan \
+            --config tools/semgrep/security.yml \
+            --config tools/semgrep/documentation.yml \
+            --severity "$SEMGREP_SEVERITY" \
+            --oss-only \
+            --error \
+            --json \
+            --output semgrep-report.json
+          SEMGREP_EXIT=$?
+          echo "semgrep_exit=$SEMGREP_EXIT" >> "$GITHUB_OUTPUT"
+
+          # Emit plain log lines with file/line context.
+          if [ -f semgrep-report.json ]; then
+            python3 -c "import json; report=json.load(open('semgrep-report.json', encoding='utf-8')); results=report.get('results', []); print(f'Semgrep findings with locations: {len(results)}'); [print(f'[{str((r.get(\"extra\") or {}).get(\"severity\", \"ERROR\")).upper()}] {r.get(\"path\", \"unknown\")}:{((r.get(\"start\") or {}).get(\"line\", 1))}:{((r.get(\"start\") or {}).get(\"col\", 1))} {r.get(\"check_id\", \"semgrep\")} - {str((r.get(\"extra\") or {}).get(\"message\", \"Semgrep finding\")).replace(chr(10), \" \").strip()}') for r in results]"
+          fi
+
+          # Block PRs when ERROR severity findings are present.
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$SEMGREP_EXIT" -ne 0 ]; then
+            exit "$SEMGREP_EXIT"
+          fi
+
+          exit 0
+
+      - name: Run Semgrep (SARIF format)
+        if: always()
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            SEMGREP_SEVERITY="ERROR"
+          else
+            SEMGREP_SEVERITY="WARNING"
+          fi
+
+          semgrep scan \
+            --config tools/semgrep/security.yml \
+            --config tools/semgrep/documentation.yml \
+            --severity "$SEMGREP_SEVERITY" \
+            --oss-only \
+            --sarif \
+            --output semgrep.sarif || true
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@58d4c8134bcf8ae089f888d056501755e0da2b44 # v4
+        if: always()
+        continue-on-error: true
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+      - name: Upload SARIF as artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        if: always()
+        with:
+          name: semgrep-sarif
+          path: semgrep.sarif
+          retention-days: 30
+
+      - name: Upload raw JSON as artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        if: always()
+        with:
+          name: semgrep-json
+          path: semgrep-report.json
+          retention-days: 30
+
+      - name: On failure - collect logs
+        if: failure()
+        run: |
+          echo "## Job Failed" >> $GITHUB_STEP_SUMMARY
+          echo "See artifacts for diagnostic information" >> $GITHUB_STEP_SUMMARY
+
+  sbom:
+    name: Generate SBOM
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - uses: pnpm/action-setup@c5ba7f7862a0f64c1b1a05fbac13e0b8e86ba08c # v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate SBOM
+        run: |
+          # Pinned to 4.1.2 for reproducibility; update periodically for security patches
+          npx @cyclonedx/cyclonedx-npm@4.1.2 --output-file sbom.json || true
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.json
+          retention-days: 90
+
+      - name: Validate SBOM
+        continue-on-error: true
+        run: |
+          pnpm run sbom:validate || true
+
+      - name: Display SBOM summary
+        run: |
+          echo "## SBOM Summary" >> $GITHUB_STEP_SUMMARY
+          echo "SBOM generated successfully" >> $GITHUB_STEP_SUMMARY
+          echo "Dependencies: $(jq '.components | length' sbom.json)" >> $GITHUB_STEP_SUMMARY
+
+      - name: On failure - collect logs
+        if: failure()
+        run: |
+          echo "## Job Failed" >> $GITHUB_STEP_SUMMARY
+          echo "See artifacts for diagnostic information" >> $GITHUB_STEP_SUMMARY
+
+  # TruffleHog secret scanning (deep scan for scheduled/manual runs)
+  trufflehog:
+    name: TruffleHog Secret Scanning
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    continue-on-error: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      # Install TruffleHog using official GitHub Action method
+      # Pinned to specific version for supply-chain security
+      # Installer script pinned to immutable commit SHA (not main branch)
+      - name: Install TruffleHog CLI
+        id: install_trufflehog
+        env:
+          TRUFFLEHOG_VERSION: '3.93.6'
+          TRUFFLEHOG_INSTALL_SCRIPT_SHA: '041f07e9df901a1038a528e5525b0226d04dd5ea'
+        run: |
+          for i in 1 2 3; do
+            echo "Attempt $i: Installing TruffleHog v${TRUFFLEHOG_VERSION}..."
+            # Use immutable commit SHA for install script (supply-chain security)
+            if curl -sSfL "https://raw.githubusercontent.com/trufflesecurity/trufflehog/${TRUFFLEHOG_INSTALL_SCRIPT_SHA}/scripts/install.sh" | sh -s -- -b /usr/local/bin "v${TRUFFLEHOG_VERSION}"; then
+              echo "TruffleHog installed successfully"
+              trufflehog --version
+              exit 0
+            fi
+            echo "Attempt $i failed, waiting 10 seconds before retry..."
+            sleep 10
+          done
+          echo "::error::Failed to install TruffleHog after 3 attempts"
+          exit 1
+
+      - name: Compute TruffleHog base commit
+        id: trufflehog_base
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For PRs, use the PR base SHA
+            echo "base=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+            echo "head=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            # For schedule/workflow_dispatch, scan last 100 commits or initial commit
+            INITIAL_COMMIT=$(git rev-list --max-parents=0 HEAD 2>/dev/null | head -n 1)
+            COMMITS_BACK=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+            if [ "$COMMITS_BACK" -gt 100 ]; then
+              BASE_COMMIT=$(git rev-parse HEAD~100)
+            else
+              BASE_COMMIT="$INITIAL_COMMIT"
+            fi
+            echo "base=$BASE_COMMIT" >> "$GITHUB_OUTPUT"
+            echo "head=HEAD" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: TruffleHog OSS Scan
+        id: trufflehog_scan
+        run: |
+          # Run TruffleHog scan using pre-installed CLI
+          # Only fail on verified secrets (confirmed active credentials)
+          # Unknown/unverified results are reported as warnings but don't block PRs
+          # This prevents false positives from documentation examples or test fixtures
+          # Output to JSON file to prevent raw secrets from appearing in CI logs
+          set +e
+          trufflehog git file://. \
+            --since-commit=${{ steps.trufflehog_base.outputs.base }} \
+            --branch=HEAD \
+            --only-verified \
+            --fail \
+            --json > trufflehog-report.json 2>&1
+          SCAN_EXIT_CODE=$?
+
+          if [ "$SCAN_EXIT_CODE" -ne 0 ]; then
+            echo "::error::TruffleHog failed or detected verified secrets (exit $SCAN_EXIT_CODE). See the protected artifact for details."
+            exit "${SCAN_EXIT_CODE}"
+          fi
+
+      - name: Upload TruffleHog report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: trufflehog-report
+          path: trufflehog-report.json
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Enforce verified secret policy on PRs
+        if: github.event_name == 'pull_request' && steps.trufflehog_scan.outcome == 'failure'
+        run: |
+          echo "::error::TruffleHog detected verified (active) secrets! Check the trufflehog-report artifact for details."
+          exit 1
+
+      - name: Generate TruffleHog summary
+        if: always()
+        run: |
+          echo "## TruffleHog Secret Scanning" >> $GITHUB_STEP_SUMMARY
+          echo "- Scan outcome: ${{ steps.trufflehog_scan.outcome }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.trufflehog_scan.outcome }}" = "success" ]; then
+            echo "✅ No verified secrets found" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.trufflehog_scan.outcome }}" = "failure" ]; then
+            echo "⚠️ **Action Required:** Verified secrets detected!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ Scan skipped or had issues" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: On failure - collect logs
+        if: failure()
+        run: |
+          echo "## Job Failed" >> $GITHUB_STEP_SUMMARY
+          echo "See artifacts for diagnostic information" >> $GITHUB_STEP_SUMMARY
+
+  # Checkov IaC scanning
+  checkov:
+    name: Checkov IaC Scanning
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    continue-on-error: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Run Checkov
+        # Pinned to v12.2900.0 for reproducibility; update periodically for security patches
+        uses: bridgecrewio/checkov-action@b0ac60d59fb4dfa81cff943aa307e23977de95cf # v12.2900.0
+        with:
+          directory: .
+          framework: dockerfile,github_actions,secrets,json,yaml
+          output_format: cli,sarif,json
+          output_file_path: console,checkov.sarif,checkov.json
+          soft_fail: ${{ github.event_name != 'pull_request' }}
+          hard_fail_on: HIGH,CRITICAL
+          skip_path: node_modules/,dist/,build/,.next/
+
+      - name: Generate Checkov summary
+        if: always()
+        run: |
+          echo "## Checkov IaC Scanning" >> $GITHUB_STEP_SUMMARY
+          if [ -f checkov.json ]; then
+            PASSED=$(jq '[.results.passed_checks // [] | length] | add // 0' checkov.json 2>/dev/null || echo "0")
+            FAILED=$(jq '[.results.failed_checks // [] | length] | add // 0' checkov.json 2>/dev/null || echo "0")
+            SKIPPED=$(jq '[.results.skipped_checks // [] | length] | add // 0' checkov.json 2>/dev/null || echo "0")
+            echo "- ✅ Passed: $PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- ❌ Failed: $FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "- ⏭️ Skipped: $SKIPPED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Checkov scan completed (no JSON output)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Checkov SARIF
+        uses: github/codeql-action/upload-sarif@58d4c8134bcf8ae089f888d056501755e0da2b44 # v4
+        if: always()
+        continue-on-error: true
+        with:
+          sarif_file: checkov.sarif
+          category: checkov
+
+      - name: Upload Checkov results
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        if: always()
+        with:
+          name: checkov-results
+          path: |
+            checkov.sarif
+            checkov.json
+          retention-days: 90
+
+      - name: On failure - collect logs
+        if: failure()
+        run: |
+          echo "## Job Failed" >> $GITHUB_STEP_SUMMARY
+          echo "See artifacts for diagnostic information" >> $GITHUB_STEP_SUMMARY

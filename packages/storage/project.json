@@ -1,0 +1,43 @@
+{
+  "name": "storage",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/storage/src",
+  "projectType": "library",
+  "tags": ["scope:infra"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/storage",
+        "main": "packages/storage/src/index.ts",
+        "tsConfig": "packages/storage/tsconfig.lib.json",
+        "assets": ["packages/storage/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "TEST_MODE=true npx tsx --test src/**/*.test.ts",
+        "cwd": "packages/storage"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "packages/storage/src/**/*.ts",
+          "packages/storage/src/**/*.test.ts",
+          "packages/storage/package.json"
+        ]
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsc -p packages/storage/tsconfig.lib.json --noEmit"
+      }
+    }
+  }
+}

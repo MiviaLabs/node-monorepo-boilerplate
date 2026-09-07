@@ -1,0 +1,100 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+apps/api/.test-db-connection.json
+apps/api/.test-db.pid
+/.claude/plans
+.mivia/
+
+/.mcp.json
+/.msp.json
+# dependencies
+node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+# /.claude/tasks
+/.claude/settings.local.json
+/bord
+# testing
+/coverage
+**/coverage/**
+
+# production
+/build
+/dist
+/tmp
+# next.js
+.next/
+out/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.env*.local
+
+# mcp local configuration
+.mcp.local.json
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# nx
+.nx/cache
+.nx/workspace-data
+
+# drizzle
+packages/db/drizzle
+
+# auto-generated documentation (regenerated in CI/CD)
+.agents/docs/reference/*
+
+# Local agent task runs and per-task evidence are never repository history.
+.agents/tasks/runs/
+.agents/tasks/**/evidence.yaml
+
+# UNIGNORE source diagram files (version controlled)
+!.agents/docs/reference/diagrams/
+!.agents/docs/reference/diagrams/mermaid/
+!.agents/docs/reference/diagrams/mermaid/**/*.mmd
+
+# UNIGNORE auto-generated markdown with diagram references (version controlled)
+!.agents/docs/reference/database/
+!.agents/docs/reference/database/er-diagram.md
+!.agents/docs/reference/modules/
+!.agents/docs/reference/modules/dependency-graph.md
+
+# UNIGNORE OpenAPI specs (version controlled)
+!.agents/docs/reference/api/
+!.agents/docs/reference/api/README.md
+!.agents/docs/reference/api/*.json
+
+# UNIGNORE package reference entrypoints (version controlled)
+!.agents/docs/reference/packages/
+!.agents/docs/reference/packages/README.md
+!.agents/docs/reference/packages/dependency-graph.md
+
+# MCP credentials (local only)
+.mcp.env
+
+# Service account keys - NEVER commit these
+service-account-key*.json
+*.pem
+
+# agent runtime traces (local only)
+.agents/traces/
+
+.claude/worktrees
+.nx/polygraph
+.nx/self-healing
+.nx/migrate-runs

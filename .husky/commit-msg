@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+# Enforce Conventional Commits on every commit message.
+# Keep this aligned with commitlint.config.js and PR title rules.
+
+# Ensure pnpm is in PATH (critical for CI/CD and devcontainer compatibility)
+export PATH="$PATH:$(pwd)/node_modules/.bin"
+if command -v corepack >/dev/null 2>&1; then
+  PNPM_BIN="corepack pnpm"
+elif command -v pnpm >/dev/null 2>&1; then
+  PNPM_BIN="pnpm"
+elif [ -x "$(pwd)/node_modules/.bin/pnpm" ]; then
+  PNPM_BIN="$(pwd)/node_modules/.bin/pnpm"
+else
+  echo "ERROR: pnpm not found in PATH or node_modules/.bin/"
+  echo "Run 'corepack enable pnpm' or 'pnpm install' to fix this."
+  exit 1
+fi
+
+if ! $PNPM_BIN exec commitlint --edit "$1"; then
+  echo ""
+  echo "❌ Invalid commit message format."
+  echo "Use: <type>(<scope>): <description>"
+  echo ""
+  echo "Examples:"
+  echo "  fix(api): restore API test reproducibility and focused-test selectivity"
+  echo "  chore(ci): expand conventional title types and scopes"
+  echo "  security(iam): rotate service-account credentials automatically"
+  echo ""
+  echo "Allowed types/scopes are defined in commitlint.config.js."
+  echo "Repository guardrails live in AGENTS.md and .agents/."
+  exit 1
+fi

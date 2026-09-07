@@ -1,0 +1,4 @@
+{
+  "healthy": "API is healthy",
+  "degraded": "API is degraded"
+}

@@ -1,0 +1,67 @@
+risk_patterns:
+  - id: RISK-001
+    name: auth-critical
+    risk_areas: [auth, session, tenant-routing, protected-flow]
+    required_lessons: [LESSON-001]
+    required_reviews: [verify_assumptions]
+    required_checks: [test_e2e]
+  - id: RISK-002
+    name: regression-fix
+    risk_areas: [regression, testing]
+    required_lessons: [LESSON-002]
+    required_reviews: [verify_assumptions]
+    required_checks: [test_unit]
+  - id: RISK-003
+    name: queue-reliability
+    risk_areas: [queue, jobs, reliability]
+    required_lessons: [LESSON-003]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_checks: [test_integration]
+  - id: RISK-004
+    name: audited-event-flow
+    risk_areas: [audit, security, compliance, tenant-routing, events, tracing]
+    required_lessons: [LESSON-004]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_checks: [test_unit, test_integration]
+  - id: RISK-005
+    name: react-state-flow
+    risk_areas: [frontend, react, protected-flow, dashboard-state]
+    required_lessons: [LESSON-005]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_checks: [test_unit]
+  - id: RISK-006
+    name: storage-upload-transport
+    risk_areas: [storage, upload, reliability]
+    required_lessons: [LESSON-006]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_checks: [test_e2e, test_integration]
+  - id: RISK-007
+    name: performance-hot-path
+    risk_areas: [performance, latency, api, frontend, protected-flow, observability]
+    required_lessons: [LESSON-007]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_checks: [lint, typecheck, test_unit]
+  - id: RISK-008
+    name: cache-expansion-safety
+    risk_areas: [cache, performance, latency, auth, tenant-routing]
+    required_lessons: [LESSON-007, LESSON-008]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_checks: [lint, typecheck, test_unit]
+  - id: RISK-009
+    name: agentic-runtime-contract
+    risk_areas: [contract, reliability, testing, documentation]
+    required_lessons: [LESSON-009, LESSON-011]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_checks: [lint, test_unit]
+  - id: RISK-010
+    name: provider-surface-alignment
+    risk_areas: [config, documentation, contract, packages]
+    required_lessons: [LESSON-010]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_checks: [test_unit]
+  - id: RISK-011
+    name: workflow-validation
+    risk_areas: [config, testing, reliability, security]
+    required_lessons: [LESSON-012]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_checks: [lint]

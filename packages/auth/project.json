@@ -1,0 +1,49 @@
+{
+  "name": "auth",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/auth/src",
+  "projectType": "library",
+  "tags": ["scope:domain"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/auth",
+        "main": "packages/auth/src/index.ts",
+        "tsConfig": "packages/auth/tsconfig.lib.json",
+        "assets": [
+          "packages/auth/*.md",
+          {
+            "input": "packages/auth/src",
+            "glob": "**/*.json",
+            "output": "."
+          }
+        ]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "TEST_MODE=true TSX_TSCONFIG_PATH=packages/auth/tsconfig.lib.json npx tsx --test packages/auth/src/**/*.test.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "packages/auth/src/**/*.ts",
+          "packages/auth/src/**/*.test.ts",
+          "packages/auth/package.json"
+        ]
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsc -p packages/auth/tsconfig.lib.json --noEmit"
+      }
+    }
+  }
+}

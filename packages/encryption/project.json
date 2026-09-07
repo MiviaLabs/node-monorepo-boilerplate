@@ -1,0 +1,49 @@
+{
+  "name": "encryption",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/encryption/src",
+  "projectType": "library",
+  "tags": ["scope:infra"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/encryption",
+        "main": "packages/encryption/src/index.ts",
+        "tsConfig": "packages/encryption/tsconfig.lib.json",
+        "assets": [
+          "packages/encryption/*.md",
+          {
+            "input": "packages/encryption/src",
+            "glob": "**/*.json",
+            "output": "."
+          }
+        ]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx jest --config packages/encryption/jest.config.js"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "packages/encryption/src/**/*.ts",
+          "packages/encryption/src/**/*.test.ts",
+          "packages/encryption/package.json"
+        ]
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsc -p packages/encryption/tsconfig.lib.json --noEmit"
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "i18n",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/i18n/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/i18n",
+        "main": "packages/i18n/src/index.ts",
+        "tsConfig": "packages/i18n/tsconfig.lib.json",
+        "assets": ["packages/i18n/*.md", "packages/i18n/src/**/*.json"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm -C ../.. exec jest --config packages/i18n/jest.config.js",
+        "cwd": "packages/i18n"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint src",
+        "cwd": "packages/i18n"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "packages/i18n"
+      }
+    },
+    "validate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsx scripts/validate-translations.ts",
+        "cwd": "packages/i18n"
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:i18n", "scope:primitive"]
+}

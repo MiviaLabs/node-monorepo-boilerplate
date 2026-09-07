@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    # Workflow intentionally disabled. Keep manual dispatch only as a visible
+    # placeholder until release automation is explicitly re-enabled.
+
+permissions: {}
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  release:
+    name: Create Release
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all projects
+        run: pnpm nx run-many --target=build --all
+
+      - name: Generate release notes
+        id: release_notes
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            const tag = context.ref.replace('refs/tags/', '');
+
+            try {
+              const previousTag = execSync('git describe --tags --abbrev=0 HEAD^', {
+                encoding: 'utf-8',
+                stdio: ['ignore', 'pipe', 'ignore']
+              }).trim();
+
+              const log = execSync(`git log ${previousTag}..${tag} --pretty=format:"%h %s"`).toString();
+              const commits = log.split('\n').filter(Boolean).map(line => `- ${line}`).join('\n');
+
+              core.setOutput('notes', `## Changes\n\n${commits}`);
+            } catch (error) {
+              // First release or no previous tag
+              core.setOutput('notes', `## Initial Release\n\nTag: ${tag}`);
+            }
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          tag_name: ${{ github.ref }}
+          name: Release ${{ github.ref }}
+          body: ${{ steps.release_notes.outputs.notes }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release summary
+        run: |
+          echo "## Release Created Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release Notes:**" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.release_notes.outputs.notes }}" >> $GITHUB_STEP_SUMMARY

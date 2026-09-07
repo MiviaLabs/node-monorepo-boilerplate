@@ -1,0 +1,40 @@
+{
+  "name": "db-outbox",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/db-outbox/src",
+  "projectType": "library",
+  "tags": ["scope:infra"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/db-outbox",
+        "main": "packages/db-outbox/src/index.ts",
+        "tsConfig": "packages/db-outbox/tsconfig.lib.json",
+        "assets": ["packages/db-outbox/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsx --test src/**/*.test.ts",
+        "cwd": "packages/db-outbox"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint src",
+        "cwd": "packages/db-outbox"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p tsconfig.lib.json",
+        "cwd": "packages/db-outbox"
+      }
+    }
+  }
+}

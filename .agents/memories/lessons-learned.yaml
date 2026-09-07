@@ -1,0 +1,334 @@
+lessons:
+  - id: LESSON-001
+    title: Auth and tenant-sensitive browser flows require real full-stack E2E
+    risk_areas:
+      - auth
+      - session
+      - tenant-routing
+      - protected-flow
+    trigger: Changes auth propagation, session handling, middleware routing, or
+      protected-page behavior.
+    bad_pattern: Claiming completion from unit tests or mocked browser tests alone.
+    required_prevention:
+      - Set required_e2e: true and include test_e2e in required_checks.
+      - Verify the protected page and tenant boundary on the active stack.
+    verification:
+      - Run and record the relevant full-stack E2E command.
+      - Check unauthenticated, authenticated, and wrong-tenant behavior when
+        applicable.
+    promotion_target: repo-standards
+    source_task: baseline-seed
+    last_seen: 2026-09-07
+  - id: LESSON-002
+    title: Bug fixes need a failing reproduction before implementation
+    risk_areas:
+      - testing
+      - regression
+    trigger: Fixes a defect or recurring test failure.
+    bad_pattern: Editing implementation first and adding only a passing regression
+      test afterward.
+    required_prevention:
+      - Reproduce the failure with the narrowest useful automated test before
+        the fix when practical.
+      - Record a justified exception in task evidence.
+    verification:
+      - Record the failing and passing commands, or explain why reproduction was
+        impractical.
+    promotion_target: test-standards
+    source_task: baseline-seed
+    last_seen: 2026-09-07
+  - id: LESSON-003
+    title: Queue retries must be bounded and handlers idempotent
+    risk_areas:
+      - queue
+      - jobs
+      - reliability
+    trigger: Changes workers, schedulers, job handlers, delivery, or retry behavior.
+    bad_pattern: Assuming startup order is stable or that duplicate delivery is harmless.
+    required_prevention:
+      - Review startup races, retry bounds, dead-letter behavior, and duplicate
+        delivery handling.
+      - Make the handler idempotency key and side-effect boundary explicit.
+    verification:
+      - Run focused startup, retry, and duplicate-delivery tests.
+      - Inspect the failure and dead-letter path, not only the happy path.
+    promotion_target: backend-standards
+    source_task: baseline-seed
+    last_seen: 2026-09-07
+  - id: LESSON-004
+    title: Audit and domain events require an explicit decision and trace continuity
+    risk_areas:
+      - audit
+      - security
+      - compliance
+      - tenant-routing
+      - events
+      - tracing
+    trigger: Changes sensitive reads, mutations, audit logging, outbox events, or
+      access control.
+    bad_pattern: Auditing every helper read, omitting mutation decisions, or
+      emitting payloads without trace IDs.
+    required_prevention:
+      - Classify each action as domain event, audit event, both, or neither.
+      - Keep payloads metadata-only and propagate requestId, correlationId, and
+        causationId.
+      - Write state and outbox records in one transaction when practical.
+    verification:
+      - Test coverage decisions, redaction, and trace propagation.
+      - Confirm no PII, secrets, tokens, or decrypted values enter event
+        payloads.
+    promotion_target: backend-standards
+    source_task: TASK-tenant-audit-logging-policy
+    last_seen: 2026-09-07
+  - id: LESSON-005
+    title: React Effects synchronize external systems instead of deriving UI state
+    risk_areas:
+      - frontend
+      - react
+      - protected-flow
+      - dashboard-state
+    trigger: Changes React state, URL state, protected-page loading, or optimistic UI.
+    bad_pattern: Copying props, fetched data, or URL state into local state through
+      useEffect.
+    required_prevention:
+      - Derive display values during render when possible.
+      - Keep user actions in event handlers or command paths.
+      - Require every new Effect to name the external system it synchronizes.
+    verification:
+      - Review every changed Effect and add regression coverage for stale or
+        shifting first-load UI.
+    promotion_target: repo-standards
+    source_task: TASK-react-effect-guardrails
+    last_seen: 2026-09-07
+  - id: LESSON-006
+    title: Storage uploads need real transport and failure-path validation
+    risk_areas:
+      - storage
+      - upload
+      - reliability
+      - testing
+    trigger: Changes upload transport, streaming, reservation, finalization, or
+      storage providers.
+    bad_pattern: Proving only a mocked happy path after changing controller, CQRS,
+      persistence, and provider layers.
+    required_prevention:
+      - Exercise reservation through completion with real API E2E.
+      - Validate length mismatch, provider failure, disconnect cleanup, and
+        bounded-stream behavior.
+    verification:
+      - Record the real API E2E and identify every unvalidated failure path as
+        residual risk.
+    promotion_target: backend-standards
+    source_task: validate-api-proxy-upload-e2e
+    last_seen: 2026-09-07
+  - id: LESSON-007
+    title: Hot paths need measured budgets, bounded reads, and shared tracing
+    risk_areas:
+      - performance
+      - latency
+      - api
+      - frontend
+      - protected-flow
+      - observability
+    trigger: Changes protected loading, hot API reads, auth bootstrap, or read caching.
+    bad_pattern: Adding fetch-all fallbacks, breaking trace continuity, or changing
+      latency without a budget.
+    required_prevention:
+      - Record current and expected budgets plus degraded-mode behavior.
+      - Keep optional data off the critical path and use bounded queries/read
+        models.
+      - Preserve one trace chain across middleware, SSR, proxy, and API.
+    verification:
+      - Run focused budget, query-shape, fallback, and protected-flow checks.
+    promotion_target: repo-standards
+    source_task: TASK-agentic-performance-guardrails
+    last_seen: 2026-09-07
+  - id: LESSON-008
+    title: Caches are rejected when invalidation is weaker than correctness
+    risk_areas:
+      - cache
+      - performance
+      - latency
+      - auth
+      - tenant-routing
+    trigger: Adds or expands a cache for hot web or API data.
+    bad_pattern: Relying on TTL or best-effort deletion despite incomplete
+      write-owner coverage or auth-sensitive state.
+    required_prevention:
+      - Inventory every mutation owner and define key, payload, freshness, and
+        invalidation ownership.
+      - Exclude auth decisions, revocation, signed URLs, decrypted PII, and
+        unstable security state.
+      - Defer the cache if the uncached path is safer.
+    verification:
+      - Record the cache safety decision and write-owner inventory in evidence.
+    promotion_target: repo-standards
+    source_task: TASK-agentic-performance-followup-guardrails
+    last_seen: 2026-09-07
+  - id: LESSON-009
+    title: Task closure must be atomic and evidence must be immutable
+    risk_areas:
+      - contract
+      - reliability
+      - testing
+      - documentation
+    trigger: Changes task creation, closure, dependencies, or completion evidence.
+    bad_pattern: Partially mutating a task before later validation fails, or
+      overwriting existing evidence.
+    required_prevention:
+      - Validate the complete closure contract before writing status or evidence.
+      - Store one evidence.yaml beside its task and reject replacement.
+      - Require dependency status and dependency evidence before closure.
+    verification:
+      - Test repeated close, failed close, dependency failure, and
+        missing-evidence paths.
+    promotion_target: repo-standards
+    source_task: TASK-agentic-runtime-hardening
+    last_seen: 2026-09-07
+  - id: LESSON-010
+    title: Canonical agent changes require generated-provider synchronization
+    risk_areas:
+      - config
+      - documentation
+      - contract
+      - packages
+    trigger: Changes .agents policies, providers, agents, registries, or skills.
+    bad_pattern: Updating one provider surface manually and leaving generated mirrors stale.
+    required_prevention:
+      - Change canonical .agents files first.
+      - Run pnpm agentic:sync and inspect generated diffs before closure.
+    verification:
+      - Run sync twice and confirm the second run is idempotent.
+      - Check generated Claude and GitHub Copilot surfaces for the changed
+        contract.
+    promotion_target: repo-standards
+    source_task: TASK-agentic-runtime-hardening
+    last_seen: 2026-09-07
+  - id: LESSON-011
+    title: Task runs and evidence are local artifacts, not cumulative repository
+      history
+    risk_areas:
+      - contract
+      - documentation
+      - privacy
+      - reliability
+    trigger: Creates task-run state or completion evidence.
+    bad_pattern: Committing historical execution traces or storing all task evidence
+      in one shared directory.
+    required_prevention:
+      - Keep schemas and templates tracked, but ignore task runs and colocate
+        evidence with its task.
+      - Keep durable decisions and lessons in memories, never raw prompts or
+        secrets.
+    verification:
+      - Confirm gitignore coverage and verify no task runs or evidence paths are
+        tracked.
+    promotion_target: repo-standards
+    source_task: TASK-agentic-memory-restructure
+    last_seen: 2026-09-07
+  - id: LESSON-012
+    title: CI conditions must not bypass required validation
+    risk_areas:
+      - config
+      - testing
+      - reliability
+      - security
+    trigger: Changes workflow conditions, bot exemptions, required checks, or
+      security permissions.
+    bad_pattern: Skipping the whole validation chain for a class of pull requests or
+      granting broader permissions for convenience.
+    required_prevention:
+      - Review every conditional branch against required checks and branch
+        protection.
+      - Keep permissions least-privilege and make exemptions narrow, explicit,
+        and observable.
+    verification:
+      - Run actionlint and inspect changed workflow paths and permissions.
+      - Test or document behavior for human, bot, fork, and rerun events.
+    promotion_target: repo-standards
+    source_task: TASK-agentic-runtime-hardening
+    last_seen: 2026-09-07
+  - id: LESSON-013
+    title: FlatCompat child configs leak their scope into flat config
+    risk_areas:
+      - tooling
+      - packages
+    trigger: Bridging legacy per-package .eslintrc.json through FlatCompat in a flat
+      eslint.config.mjs.
+    bad_pattern: Override globs like **/*.ts and parserOptions from a child config
+      apply to the entire repository, silently breaking or redirecting lint for
+      every other project.
+    required_prevention: Port child configs to native flat blocks scoped by
+      directory; verify with eslint --print-config on files from at least two
+      different projects.
+    verification: print-config shows the effective rules/parserOptions per file; a
+      lint run over multiple packages succeeds.
+    promotion_target: repo-standards
+    source_task: TASK-1817-PKG-ARCH
+    last_seen: 2026-09-08
+  - id: LESSON-014
+    title: eslint-plugin-import 2.x is incompatible with ESLint 10
+    risk_areas:
+      - tooling
+      - dependencies
+    trigger: Enabling import rules (notably import/order) on ESLint 10.
+    bad_pattern: The plugin calls SourceCode.getTokenOrCommentAfter, removed in
+      ESLint 10, and crashes at rule runtime on certain files.
+    required_prevention: Disable the affected rules for the affected paths, or
+      migrate to eslint-plugin-import-x; add a CI lint run so the crash cannot
+      hide.
+    verification: eslint exit code 0 over the full package tree; no runtime rule crashes.
+    promotion_target: repo-standards
+    source_task: TASK-1817-PKG-ARCH
+    last_seen: 2026-09-08
+  - id: LESSON-015
+    title: tsx/esbuild cannot transform parameter decorators
+    risk_areas:
+      - testing
+      - packages
+      - nestjs
+    trigger: Running decorator-heavy Nest tests through tsx.
+    bad_pattern: esbuild rejects parameter decorators even with
+      experimentalDecorators enabled, so affected test files fail to load.
+    required_prevention: Run decorator-dependent tests under jest with @swc/jest
+      (legacyDecorator + decoratorMetadata) and map workspace packages to
+      source; keep tsx for the rest.
+    verification: The previously unrun test suite passes under jest while the tsx
+      suites stay green.
+    promotion_target: repo-standards
+    source_task: TASK-1817-PKG-ARCH
+    last_seen: 2026-09-08
+  - id: LESSON-016
+    title: pnpm subtree .bin can shadow workspace TypeScript with a newer major
+    risk_areas:
+      - tooling
+      - typescript
+      - dependencies
+    trigger: Running tsc via a package-local .bin when a transitive dependency
+      pulled a different TypeScript major.
+    bad_pattern: TypeScript 7 removes baseUrl and moduleResolution node/node10, so
+      previously valid tsconfigs fail only in some projects.
+    required_prevention: Pin the workspace TypeScript explicitly (node
+      ../../node_modules/typescript/bin/tsc) or align the dep subtree; track the
+      TS7 migration.
+    verification: nx run-many -t typecheck passes for all projects with standalone tsconfigs.
+    promotion_target: repo-standards
+    source_task: TASK-1817-PKG-ARCH
+    last_seen: 2026-09-08
+  - id: LESSON-017
+    title: Standalone tsc typecheck targets require rootDir-clean package boundaries
+    risk_areas:
+      - tooling
+      - packages
+      - architecture
+    trigger: Adding tsc --noEmit typecheck targets to packages that import sibling
+      package sources.
+    bad_pattern: The rootDir rule rejects files outside the package, so the target
+      fails even though the app-level build typechecks the same code.
+    required_prevention: Only wire typecheck targets for packages whose tsconfig
+      compiles standalone; cover cross-package graphs via the app tsconfig, or
+      adopt composite builds.
+    verification: nx run-many -t typecheck passes for exactly the documented project set.
+    promotion_target: repo-standards
+    source_task: TASK-1817-PKG-ARCH
+    last_seen: 2026-09-08

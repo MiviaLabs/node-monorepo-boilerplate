@@ -1,0 +1,107 @@
+- name: codex
+  category: provider
+  display_name: Codex
+  adapter_mode: generated
+  root_adapter_path: CODEX.md
+  strengths:
+    - orchestration
+    - planning
+    - repo-execution
+    - code-editing
+    - review
+    - exploration
+    - tool-use
+  default_roles:
+    - orchestrator
+    - code-explorer
+    - pattern-matcher
+    - dependency-analyzer
+    - planner
+    - backend-implementer
+    - frontend-implementer
+    - test-implementer
+    - reviewer
+    - test-analyzer
+    - gate-runner
+  instruction_entrypoints:
+    - AGENTS.md
+    - CODEX.md
+    - .agents/providers/codex.md
+  tooling_expectations:
+    - terminal-first
+    - repository-native-commands
+    - evidence-driven-closure
+  notes:
+    - Codex is the default execution provider unless routing assigns a different provider.
+
+- name: claude
+  category: provider
+  display_name: Claude Code
+  adapter_mode: generated
+  root_adapter_path: CLAUDE.md
+  agent_alias_dir: .claude/agents
+  agent_file_suffix: .md
+  strengths:
+    - planning
+    - synthesis
+    - review
+  default_roles:
+    - planner
+    - reviewer
+  instruction_entrypoints:
+    - CLAUDE.md
+    - .agents/README.md
+    - .agents/providers/claude.md
+  tooling_expectations:
+    - policy-synthesis
+    - review-support
+  notes:
+    - Use Claude when synthesis, planning, or review materially benefits from its strengths.
+    - Claude Code project agents are generated from the canonical .agents registry.
+
+- name: gemini
+  category: provider
+  display_name: Gemini
+  adapter_mode: external-read-only
+  strengths:
+    - large-context-analysis
+    - synthesis
+    - exploration
+  default_roles:
+    - code-explorer
+    - pattern-matcher
+    - dependency-analyzer
+  instruction_entrypoints:
+    - .agents/README.md
+  tooling_expectations:
+    - read-heavy-analysis
+    - pattern-search
+  notes:
+    - Gemini is an optional external read-only explorer when repository exploration is insufficient.
+    - No local Gemini adapter is generated; route only read-only analysis work to it.
+
+- name: github-copilot
+  category: provider
+  display_name: GitHub Copilot
+  adapter_mode: generated
+  root_adapter_path: .github/copilot-instructions.md
+  strengths:
+    - repo-chat
+    - custom-agents
+    - project-skills
+    - path-specific-instructions
+  default_roles:
+    - planner
+    - reviewer
+    - code-explorer
+  instruction_entrypoints:
+    - .github/copilot-instructions.md
+    - .agents/README.md
+    - .agents/providers/github-copilot.md
+  tooling_expectations:
+    - project-skills
+    - custom-agents
+    - repository-instructions
+  notes:
+    - GitHub Copilot consumes generated .github/skills and .github/agents artifacts derived from .agents.
+    - Path-specific .github instructions may add context but cannot weaken the canonical contract.

@@ -1,0 +1,29 @@
+# ShellCheck Configuration
+# Shell script linter
+# Docs: https://www.shellcheck.net/wiki/
+
+# Default shell dialect (sh, bash, dash, ksh)
+shell=bash
+
+# Enable all optional checks
+enable=all
+
+# Severity threshold (error, warning, info, style)
+severity=warning
+
+# Source paths for sourced scripts
+source-path=SCRIPTDIR
+source-path=scripts/
+
+# Disable specific checks with justification
+# SC1091: Not following sourced file - external/generated scripts
+disable=SC1091
+
+# SC2086: Double quote to prevent globbing - sometimes intentional
+# disable=SC2086
+
+# External sources to follow
+# external-sources=true
+
+# Color output
+color=auto

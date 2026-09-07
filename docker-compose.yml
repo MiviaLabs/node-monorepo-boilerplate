@@ -1,0 +1,305 @@
+services:
+  opa:
+    image: openpolicyagent/opa:0.64.1
+    container_name: starter-kit-opa
+    restart: unless-stopped
+    command: run -s /policies
+    ports:
+      - '8181:8181'
+    volumes:
+      - ./packages/opa/policies/authz:/policies
+    healthcheck:
+      test: ['CMD', '/opa', 'version']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: pgvector/pgvector:pg18
+    container_name: starter-kit-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: starter
+      POSTGRES_PASSWORD: starter_dev
+      POSTGRES_DB: starter_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U starter -d starter_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8-alpine
+    container_name: starter-kit-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: starter-kit-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2181:2181'
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    healthcheck:
+      test: ['CMD-SHELL', 'echo ruok | nc localhost 2181 && echo imok']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: starter-kit-kafka
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_HOST://kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ['CMD-SHELL', 'kafka-broker-api-versions --bootstrap-server localhost:9092']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # vault:
+  #   image: hashicorp/vault:latest
+  #   container_name: starter-kit-vault
+  #   restart: unless-stopped
+  #   ports:
+  #     - '8200:8200'
+  #   environment:
+  #     VAULT_DEV_ROOT_TOKEN_ID: 'dev-root-token'
+  #     VAULT_DEV_LISTEN_ADDRESS: '0.0.0.0:8200'
+  #   cap_add:
+  #     - IPC_LOCK
+  #   volumes:
+  #     - vault_data:/vault/data
+  #   command: server -dev
+  #   healthcheck:
+  #     test: ['CMD', 'vault', 'status']
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # # OpenTelemetry Collector
+  # # Receives traces, metrics, and logs from applications
+  # # Exports to Jaeger (traces) and Prometheus (metrics)
+  # otel-collector:
+  #   image: otel/opentelemetry-collector-contrib:latest
+  #   container_name: starter-kit-otel-collector
+  #   restart: unless-stopped
+  #   command: --config=/etc/otel-collector-config.yaml
+  #   ports:
+  #     - '4317:4317' # OTLP gRPC receiver
+  #     - '4318:4318' # OTLP HTTP receiver
+  #     - '8888:8888' # Prometheus metrics endpoint
+  #     - '8889:8889' # Prometheus exporter metrics
+  #   volumes:
+  #     - ./docker/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+  #   depends_on:
+  #     jaeger:
+  #       condition: service_started
+  #   healthcheck:
+  #     test:
+  #       [
+  #         'CMD-SHELL',
+  #         'wget --no-verbose --tries=1 --spider http://localhost:8888/metrics || exit 1',
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # # Jaeger - Distributed Tracing Platform
+  # # Visualizes traces from OpenTelemetry
+  # # Note: The OTEL Collector exports traces to Jaeger internally
+  # # Applications should send to OTEL Collector, not directly to Jaeger
+  # jaeger:
+  #   image: jaegertracing/all-in-one:latest
+  #   container_name: starter-kit-jaeger
+  #   restart: unless-stopped
+  #   environment:
+  #     COLLECTOR_OTLP_ENABLED: 'true'
+  #   ports:
+  #     - '16686:16686' # Jaeger UI
+  #     - '5778:5778' # Serve configs
+  #   healthcheck:
+  #     test:
+  #       [
+  #         'CMD-SHELL',
+  #         'wget --no-verbose --tries=1 --spider http://localhost:16686/api/status || exit 1',
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # # Prometheus - Metrics Storage
+  # # Scrapes metrics from OTEL collector and applications
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: starter-kit-prometheus
+  #   restart: unless-stopped
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+  #     - '--web.console.templates=/usr/share/prometheus/consoles'
+  #   ports:
+  #     - '9090:9090' # Prometheus UI
+  #   volumes:
+  #     - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - ./tools/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - prometheus_data:/prometheus
+  #   depends_on:
+  #     otel-collector:
+  #       condition: service_started
+  #     alertmanager:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test:
+  #       [
+  #         'CMD-SHELL',
+  #         'wget --no-verbose --tries=1 --spider http://localhost:9090/-/healthy || exit 1',
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # # AlertManager - Alert Routing and Notification
+  # # Receives alerts from Prometheus and routes to receivers
+  # alertmanager:
+  #   image: prom/alertmanager:latest
+  #   container_name: starter-kit-alertmanager
+  #   restart: unless-stopped
+  #   command:
+  #     - '--config.file=/etc/alertmanager/alertmanager.yml'
+  #     - '--storage.path=/alertmanager'
+  #   ports:
+  #     - '9093:9093' # AlertManager UI
+  #   volumes:
+  #     - ./tools/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+  #     - alertmanager_data:/alertmanager
+  #   healthcheck:
+  #     test:
+  #       [
+  #         'CMD-SHELL',
+  #         'wget --no-verbose --tries=1 --spider http://localhost:9093/-/healthy || exit 1',
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # # Grafana - Metrics Visualization Dashboard
+  # # Creates dashboards from Prometheus metrics and Jaeger traces
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: starter-kit-grafana
+  #   restart: unless-stopped
+  #   environment:
+  #     GF_SECURITY_ADMIN_USER: admin
+  #     GF_SECURITY_ADMIN_PASSWORD: admin
+  #     GF_SERVER_ROOT_URL: 'http://localhost:3001'
+  #     GF_INSTALL_PLUGINS: grafana-piechart-panel
+  #   ports:
+  #     - '3001:3000' # Grafana UI (3000 conflicts with Next.js)
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #     - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+  #   depends_on:
+  #     prometheus:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test:
+  #       [
+  #         'CMD-SHELL',
+  #         'wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1',
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # # Keycloak - Identity and Access Management
+  # # Provides authentication, authorization, and user management for local development
+  # keycloak:
+  #   image: quay.io/keycloak/keycloak:latest
+  #   container_name: starter-kit-keycloak
+  #   restart: unless-stopped
+  #   command: start-dev
+  #   environment:
+  #     # Admin credentials
+  #     KEYCLOAK_ADMIN: admin
+  #     KEYCLOAK_ADMIN_PASSWORD: admin
+
+  #     # Database configuration
+  #     KC_DB: postgres
+  #     KC_DB_URL: jdbc:postgresql://postgres:5432/starter_db
+  #     KC_DB_USERNAME: starter
+  #     KC_DB_PASSWORD: starter_dev
+
+  #     # Hostname configuration
+  #     KC_HOSTNAME: localhost
+  #     KC_HOSTNAME_PORT: 8080
+  #     KC_HOSTNAME_STRICT: 'false'
+  #     KC_HOSTNAME_STRICT_HTTPS: 'false'
+
+  #     # HTTP configuration
+  #     KC_HTTP_ENABLED: 'true'
+  #   ports:
+  #     - '8080:8080' # Keycloak UI
+  #   volumes:
+  #     - keycloak_data:/opt/keycloak/data
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test:
+  #       [
+  #         'CMD-SHELL',
+  #         'exec 3<>/dev/tcp/localhost/8080 && echo -e "GET /health/ready HTTP/1.1\r\nhost: localhost:8080\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep -q "200 OK" || exit 1',
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 60s
+
+volumes:
+  postgres_data:
+  redis_data:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:
+  # vault_data:
+  # prometheus_data:
+  # alertmanager_data:
+  # grafana_data:
+  # keycloak_data:

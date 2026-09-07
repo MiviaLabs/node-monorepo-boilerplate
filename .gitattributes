@@ -1,0 +1,7 @@
+.github/workflows/*.lock.yml linguist-generated=true merge=ours
+
+# Shell scripts must use LF line endings (Unix-style)
+*.sh text eol=lf
+
+# Husky hooks must use LF line endings
+.husky/* text eol=lf

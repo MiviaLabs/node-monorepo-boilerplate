@@ -1,0 +1,53 @@
+# ============================================================================
+# GCP Storage Infrastructure - Example Configuration
+# ============================================================================
+# This shows the values generated into ../environments/<env>/gcp-storage.tfvars.
+
+project_id = "my-gcp-project-id"
+
+region = "us-central1"
+zone   = "us-central1-a"
+
+environment = "dev"
+
+default_instance = "uploads"
+
+storage_instances = {
+  uploads = {
+    bucket_name               = "my-gcp-project-id-dev-app-uploads"
+    bucket_location           = "US"
+    storage_class             = "STANDARD"
+    enable_versioning         = true
+    lifecycle_delete_age_days = 0
+    force_destroy             = false
+    cors_origins              = []
+    cors_methods              = ["GET", "HEAD", "PUT", "POST"]
+    cors_response_headers     = ["Content-Type", "Authorization"]
+    cors_max_age_seconds      = 3600
+    service_account_id        = "storage-uploads-sa"
+    create_hmac_key           = true
+
+    additional_object_admin_members   = []
+    additional_object_viewer_members  = []
+    admin_iam_members                 = []
+  }
+
+  avatars = {
+    bucket_name               = "my-gcp-project-id-dev-user-avatars"
+    bucket_location           = "US"
+    storage_class             = "STANDARD"
+    enable_versioning         = true
+    lifecycle_delete_age_days = 0
+    force_destroy             = false
+    cors_origins              = []
+    cors_methods              = ["GET", "HEAD", "PUT", "POST"]
+    cors_response_headers     = ["Content-Type", "Authorization"]
+    cors_max_age_seconds      = 3600
+    service_account_id        = "storage-avatars-sa"
+    create_hmac_key           = true
+
+    additional_object_admin_members   = []
+    additional_object_viewer_members  = []
+    admin_iam_members                 = []
+  }
+}

@@ -1,0 +1,40 @@
+$id: https://mivialabs.dev/schema/agentic-epic.schema.json
+$schema: http://json-schema.org/draft-07/schema#
+title: AgenticEpic
+type: object
+additionalProperties: false
+required:
+  - id
+  - title
+  - status
+  - description
+  - tasks
+
+properties:
+  id:
+    type: string
+    pattern: '^TASK-\d{3}$'
+  title:
+    type: string
+  status:
+    type: string
+    enum: [todo, in_progress, done, blocked]
+  description:
+    type: string
+  tasks:
+    type: array
+    items:
+      type: string
+      pattern: '^TASK-\d{3}-\d{3}$'
+  critical_path:
+    type: array
+    items:
+      type: string
+      pattern: '^TASK-\d{3}-\d{3}$'
+  parallel_groups:
+    type: array
+    items:
+      type: array
+      items:
+        type: string
+        pattern: '^TASK-\d{3}-\d{3}$'

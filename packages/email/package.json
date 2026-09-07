@@ -1,0 +1,33 @@
+{
+  "name": "@package/email",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "TEST_MODE=true jest",
+    "test:unit": "TEST_MODE=true jest",
+    "test:watch": "TEST_MODE=true jest --watch",
+    "test:coverage": "TEST_MODE=true jest --coverage"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@package/core": "workspace:*",
+    "@package/queues": "workspace:*",
+    "bullmq": "^5.66.4",
+    "resend": "^6.9.3",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/jest": "30.0.0",
+    "svix": "^1.84.1"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^12.0.0",
+    "@opentelemetry/api": "^1.9.0"
+  },
+  "peerDependenciesMeta": {
+    "@nestjs/common": {
+      "optional": false
+    }
+  }
+}

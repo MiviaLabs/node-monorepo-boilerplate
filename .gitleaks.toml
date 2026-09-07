@@ -1,0 +1,20 @@
+title = "Gitleaks Configuration"
+
+# Extend the default configuration
+[extend]
+useDefault = true
+
+# Allowlists to exclude documentation, examples, and test files
+[allowlist]
+description = "Global allowlist to exclude documentation and test files"
+paths = [
+  '''IMPLEMENTATION\/''',
+  '''\.md$''',
+  '''STRATEGY\/''',
+  '''\.md\.example$''',
+  '''\.env\.example$''',
+  '''\.test\.ts$''',
+  '''\.spec\.ts$''',
+  '''__tests__\/''',
+  '''examples\/'''
+]

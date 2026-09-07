@@ -1,0 +1,32 @@
+- name: research-team
+  purpose: Produce a concise, read-only map of the unknowns that could change the plan.
+  members:
+    - code-explorer
+    - pattern-matcher
+    - dependency-analyzer
+  rules:
+    - parallel
+    - read-only
+    - synthesize-before-next-phase
+
+- name: build-team
+  purpose: Implement planned work with explicit ownership and a review handoff.
+  members:
+    - backend-implementer
+    - frontend-implementer
+    - test-implementer
+  rules:
+    - parallel-when-disjoint
+    - explicit-file-ownership
+    - reviewer-required
+
+- name: quality-team
+  purpose: Find regressions, explain failures, and prove the declared gates.
+  members:
+    - reviewer
+    - test-analyzer
+    - gate-runner
+  rules:
+    - independent-lenses
+    - findings-before-summary
+    - attach-completion-evidence

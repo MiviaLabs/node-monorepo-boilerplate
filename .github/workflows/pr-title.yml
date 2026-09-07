@@ -1,0 +1,96 @@
+name: PR Title Validation
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  validate-pr-title:
+    name: Validate PR Title
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate PR Title follows Conventional Commits
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Types matching commitlint.config.js
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+            hotfix
+            security
+            compliance
+            release
+          # Scopes matching commitlint.config.js
+          scopes: |
+            auth
+            database
+            api
+            web
+            ai
+            encrypted-store
+            monitoring
+            security
+            infra
+            deps
+            ci
+            core
+            platform
+            backend
+            frontend
+            mobile
+            data
+            analytics
+            observability
+            sre
+            devops
+            compliance
+            governance
+            risk
+            privacy
+            iam
+            billing
+            payments
+            notifications
+            integrations
+            docs
+            dx
+            onboarding
+          # Require scope to be provided
+          requireScope: false
+          # Disable WIP detection (already handled by auto_review ignore_title_keywords)
+          ignoreLabels: |
+            WIP
+            work in progress
+          # Subject pattern - no uppercase first letter required
+          subjectPattern: ^.+$
+          subjectPatternError: |
+            PR title must follow Conventional Commits format:
+            <type>(<scope>): <description>
+
+            Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert, hotfix, security, compliance, release
+            Scopes: auth, database, api, web, ai, encrypted-store, monitoring, security, infra, deps, ci, core, platform, backend, frontend, mobile, data, analytics, observability, sre, devops, compliance, governance, risk, privacy, iam, billing, payments, notifications, integrations, docs, dx, onboarding
+
+            Examples:
+            - feat(api): add user authentication endpoint
+            - fix(web): resolve hydration mismatch on login page
+            - chore(deps): update dependencies
+            - security(iam): tighten service-account key rotation policy

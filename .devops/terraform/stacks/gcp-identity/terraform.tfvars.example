@@ -1,0 +1,41 @@
+# ============================================================================
+# GCP Identity Platform Infrastructure - Example Configuration
+# ============================================================================
+# This shows the values generated into ../environments/<env>/gcp-identity.tfvars.
+
+project_id = "my-gcp-project-id"
+
+region = "us-central1"
+zone   = "us-central1-a"
+
+environment = "dev"
+
+# Service account ID must stay lowercase letters/digits/hyphens.
+firebase_admin_service_account_id = "firebase-adminsdk"
+create_service_account_key        = false
+
+# API key name must be lowercase letters/digits/hyphens for this stack.
+create_api_key       = true
+api_key_display_name = "identity-platform-web-key"
+
+# Add your deployed web domains here in addition to localhost.
+authorized_domains = [
+  "localhost",
+  "your-app.example.com"
+]
+
+allow_duplicate_emails = false
+enable_anonymous_users = false
+enable_email_password  = true
+password_required      = true
+
+disable_user_signup   = false
+disable_user_deletion = false
+
+enable_multi_tenant    = true
+create_default_tenant  = false
+tenant_display_name    = "starter-kit-default-tenant"
+allow_password_signup  = true
+enable_email_link_signin = false
+
+additional_admin_members = []

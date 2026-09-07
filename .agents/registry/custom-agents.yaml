@@ -1,0 +1,73 @@
+- name: runtime-governor
+  description: Owns .agents runtime changes, provider routing, task evidence semantics, and cross-provider adapter consistency.
+  canonical_prompt_path: .agents/agents/runtime-governor.md
+  required_skills:
+    - agentic-runtime-governance
+    - runtime-instruction-alignment
+  tools:
+    - read
+    - search
+    - edit
+  provider_aliases:
+    claude: runtime-governor
+    github-copilot: runtime-governor
+  mirror_paths:
+    claude:
+      - .claude/agents/runtime-governor.md
+    github-copilot:
+      - .github/agents/runtime-governor.agent.md
+
+- name: api-tenant-safety-guardian
+  description: Specializes in NestJS API changes involving tenant isolation, CQRS boundaries, audit decisions, request-trace propagation, query shaping, and hot-path performance guardrails.
+  canonical_prompt_path: .agents/agents/api-tenant-safety-guardian.md
+  tools:
+    - read
+    - search
+  required_skills:
+    - api-auth-tenant-flows
+    - api-cqrs-tenant-safety
+    - audit-outbox-tracing
+  provider_aliases:
+    claude: api-tenant-safety-guardian
+    github-copilot: api-tenant-safety-guardian
+  mirror_paths:
+    claude:
+      - .claude/agents/api-tenant-safety-guardian.md
+    github-copilot:
+      - .github/agents/api-tenant-safety-guardian.agent.md
+
+- name: web-auth-flow-guardian
+  description: Specializes in Next.js auth proxy routes, middleware, protected dashboard routes, web auth E2E implications, trace continuity, and protected-route performance guardrails.
+  canonical_prompt_path: .agents/agents/web-auth-flow-guardian.md
+  tools:
+    - read
+    - search
+  required_skills:
+    - web-auth-proxy-flows
+    - tenant-dashboard-query-state
+  provider_aliases:
+    claude: web-auth-flow-guardian
+    github-copilot: web-auth-flow-guardian
+  mirror_paths:
+    claude:
+      - .claude/agents/web-auth-flow-guardian.md
+    github-copilot:
+      - .github/agents/web-auth-flow-guardian.agent.md
+
+- name: admin-operator-flow-agent
+  description: Specializes in operator session behavior, admin inventory flows, scoped access views, and required admin E2E coverage.
+  canonical_prompt_path: .agents/agents/admin-operator-flow-agent.md
+  tools:
+    - read
+    - search
+  required_skills:
+    - admin-operator-flows
+    - admin-inventory-pages
+  provider_aliases:
+    claude: admin-operator-flow-agent
+    github-copilot: admin-operator-flow-agent
+  mirror_paths:
+    claude:
+      - .claude/agents/admin-operator-flow-agent.md
+    github-copilot:
+      - .github/agents/admin-operator-flow-agent.agent.md

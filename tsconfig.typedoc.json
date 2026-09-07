@@ -1,0 +1,38 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "skipLibCheck": true,
+    "declaration": true
+  },
+  "include": [
+    "packages/auth/src/**/*.ts",
+    "packages/constants/src/**/*.ts",
+    "packages/core/src/**/*.ts",
+    "packages/db-core/src/**/*.ts",
+    "packages/db-outbox/src/**/*.ts",
+    "packages/encryption/src/**/*.ts",
+    "packages/errors/src/**/*.ts",
+    "packages/events/src/**/*.ts",
+    "packages/i18n/src/**/*.ts",
+    "packages/observability/src/**/*.ts",
+    "packages/opa/src/**/*.ts",
+    "packages/pubsub/src/**/*.ts",
+    "packages/queues/src/**/*.ts",
+    "packages/redis/src/**/*.ts",
+    "packages/schema/src/**/*.ts",
+    "packages/secrets/src/**/*.ts",
+    "packages/tasks/src/**/*.ts",
+    "packages/test-utils/src/**/*.ts",
+    "packages/types/src/**/*.ts",
+    "packages/utils/src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/scripts/**",
+    "**/__mocks__/**",
+    "**/mocks/**",
+    "node_modules"
+  ]
+}

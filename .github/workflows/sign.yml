@@ -1,0 +1,62 @@
+name: Sign and Verify
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  sign:
+    name: Sign Build Artifacts
+    # Skip for automated bot PRs
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+    concurrency:
+      group: sign-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm nx run-many --target=build --all --skip-nx-cache
+
+      - name: Create distribution archive
+        run: |
+          tar -czf dist.tar.gz dist/
+          sha256sum dist.tar.gz > dist.tar.gz.sha256
+
+      - name: Sign with Sigstore
+        uses: sigstore/gh-action-sigstore-python@a5caf349bc536fbef3668a10ed7f5cd309a4b53d # v3.2.0
+        with:
+          inputs: ./dist.tar.gz
+          upload-signing-artifacts: true
+
+      - name: Upload distribution archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dist-archive
+          path: |
+            dist.tar.gz
+            dist.tar.gz.sha256
+          retention-days: 90

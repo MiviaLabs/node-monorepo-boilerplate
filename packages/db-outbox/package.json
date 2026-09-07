@@ -1,0 +1,14 @@
+{
+  "name": "@package/db-outbox",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "scripts": {
+    "test": "npx tsx --test src/**/*.test.ts",
+    "test:unit": "npx tsx --test src/**/*.unit.test.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.2",
+    "pg": "^8.17.1",
+    "tslib": "^2.3.0"
+  }
+}

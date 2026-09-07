@@ -1,0 +1,179 @@
+# API Alerting Rules
+#
+# These rules define alerts for API-specific metrics.
+# Rules are evaluated by Prometheus based on the configured evaluation_interval.
+#
+# Severity levels:
+# - critical: Immediate action required, service is down
+# - warning: Action required soon, service degraded
+# - info: Informational, no immediate action
+
+groups:
+  - name: api_alerts
+    interval: 30s
+    rules:
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (sum(rate(http_request_duration_seconds_count{status=~"5.."}[5m]))
+          /
+          (sum(rate(http_request_duration_seconds_count[5m]))) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: 'High error rate detected'
+          description: 'Error rate is {{ $value | humanizePercentage }} for the last 5 minutes'
+          runbook_url: 'https://docs.example.com/runbooks/high-error-rate'
+
+      # Critical Error Rate
+      - alert: CriticalErrorRate
+        expr: |
+          (sum(rate(http_request_duration_seconds_count{status=~"5.."}[5m]))
+          /
+          (sum(rate(http_request_duration_seconds_count[5m]))) > 0.15
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: 'Critical error rate detected'
+          description: 'Error rate is {{ $value | humanizePercentage }} for the last 5 minutes'
+          runbook_url: 'https://docs.example.com/runbooks/critical-error-rate'
+
+      # High Latency (P95)
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: 'High API latency detected'
+          description: 'P95 latency is {{ $value }}s for the last 10 minutes'
+
+      # Critical Latency (P95)
+      - alert: CriticalLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 3
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: 'Critical API latency detected'
+          description: 'P95 latency is {{ $value }}s for the last 5 minutes'
+
+      # Service Down
+      - alert: ServiceDown
+        expr: up{job="node-monorepo-boilerplate-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: 'API service is down'
+          description: 'The API service has been down for more than 2 minutes'
+          runbook_url: 'https://docs.example.com/runbooks/service-down'
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (process_resident_memory_bytes{job="node-monorepo-boilerplate-api"} / 1024 / 1024) > 1024
+        for: 15m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: 'High memory usage detected'
+          description: 'API memory usage is {{ $value }}MB for more than 15 minutes'
+
+      # Critical Memory Usage
+      - alert: CriticalMemoryUsage
+        expr: |
+          (process_resident_memory_bytes{job="node-monorepo-boilerplate-api"} / 1024 / 1024) > 2048
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: 'Critical memory usage detected'
+          description: 'API memory usage is {{ $value }}MB'
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          (rate(process_cpu_seconds_total{job="node-monorepo-boilerplate-api"}[5m]) * 100) > 70
+        for: 15m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: 'High CPU usage detected'
+          description: 'API CPU usage is {{ $value }}% for more than 15 minutes'
+
+      # Database Connection Pool Exhaustion
+      - alert: DatabasePoolExhausted
+        expr: |
+          (db_pool_active_connections{job="node-monorepo-boilerplate-api"} / db_pool_max_connections{job="node-monorepo-boilerplate-api"}) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: 'Database connection pool nearly exhausted'
+          description: '{{ $value | humanizePercentage }} of database connections are in use'
+
+      # Database Connection Failures
+      - alert: DatabaseConnectionFailures
+        expr: |
+          rate(db_connection_errors_total{job="node-monorepo-boilerplate-api"}[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: 'Database connection errors detected'
+          description: '{{ $value }} connection errors per second'
+
+      # Redis Connection Failures
+      - alert: RedisConnectionFailures
+        expr: |
+          rate(redis_connection_errors_total{job="node-monorepo-boilerplate-api"}[5m]) > 0
+        for: 2m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: 'Redis connection errors detected'
+          description: '{{ $value }} connection errors per second'
+
+      # Queue Processing Delay
+      - alert: QueueProcessingDelay
+        expr: |
+          (bullmq_job_duration_seconds{quantile="0.95"} > 300)
+        for: 10m
+        labels:
+          severity: warning
+          component: queue
+        annotations:
+          summary: 'Queue processing delay detected'
+          description: 'P95 job duration is {{ $value }}s'
+
+      # Queue Job Failures
+      - alert: QueueJobFailures
+        expr: |
+          (rate(bullmq_job_failed_total[5m]) / rate(bullmq_job_completed_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: queue
+        annotations:
+          summary: 'High queue job failure rate'
+          description: 'Job failure rate is {{ $value | humanizePercentage }}'

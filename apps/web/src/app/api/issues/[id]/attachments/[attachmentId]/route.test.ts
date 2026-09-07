@@ -1,0 +1,63 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { DELETE } from './route';
+
+import type { NextRequest } from 'next/server';
+
+vi.mock('~/lib/runtime-config', async () => {
+  const actual =
+    await vi.importActual<typeof import('~/lib/runtime-config')>('~/lib/runtime-config');
+  return {
+    ...actual,
+    getVersionedApiBaseUrl: vi.fn(() => 'http://localhost:3001/api/v1')
+  };
+});
+
+function createMockRequest(cookies: Record<string, string | undefined> = {}): NextRequest {
+  return {
+    headers: {
+      get: () => null
+    },
+    cookies: {
+      get: (name: string) => {
+        const value = cookies[name];
+        return value ? { name, value } : undefined;
+      }
+    }
+  } as unknown as NextRequest;
+}
+
+describe('issue attachment delete proxy route', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    global.fetch = vi.fn();
+  });
+
+  it('forwards DELETE attachment requests with auth and tenant headers', async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => ({})
+    });
+
+    const response = await DELETE(
+      createMockRequest({
+        accessToken: 'cookie-token',
+        tenantId: '456'
+      }),
+      { params: Promise.resolve({ id: '7', attachmentId: '51' }) }
+    );
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:3001/api/v1/tickets/7/attachments/51',
+      expect.objectContaining({
+        method: 'DELETE',
+        headers: expect.objectContaining({
+          authorization: 'Bearer cookie-token',
+          'x-tenant-id': '456'
+        })
+      })
+    );
+    expect(response.status).toBe(204);
+  });
+});

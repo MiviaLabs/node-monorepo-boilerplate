@@ -1,0 +1,43 @@
+{
+  "name": "email",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/email/src",
+  "projectType": "library",
+  "tags": ["scope:infra"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/email",
+        "main": "packages/email/src/index.ts",
+        "tsConfig": "packages/email/tsconfig.lib.json",
+        "assets": ["packages/email/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "TEST_MODE=true npx tsx --test src/**/*.test.ts",
+        "cwd": "packages/email"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "packages/email/src/**/*.ts",
+          "packages/email/src/**/*.test.ts",
+          "packages/email/package.json"
+        ]
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsc -p packages/email/tsconfig.lib.json --noEmit"
+      }
+    }
+  }
+}

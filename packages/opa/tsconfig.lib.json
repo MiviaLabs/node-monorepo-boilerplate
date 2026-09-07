@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "types": ["node"],
+    "paths": {
+      "@package/constants": ["../../constants/src/index.ts"],
+      "@package/core": ["../../core/src/index.ts"],
+      "@package/types": ["../../types/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts", "src/**/__mocks__/**"]
+}

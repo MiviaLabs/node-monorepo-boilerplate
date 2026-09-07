@@ -1,0 +1,23 @@
+{
+  "API_001": "Tenant context is required for this request",
+  "API_002": "Invalid tenant context provided",
+  "API_003": "API version {version} not found",
+  "API_004": "API version {version} is deprecated and will be sunset on {sunsetDate}",
+  "API_005": "Rate limit exceeded. Maximum {limit} requests per {window} seconds. Retry after {retryAfter} seconds",
+  "API_006": "Request validation failed for field {field}: {constraint}",
+  "API_007": "Invalid query parameter {param}: {value}",
+  "API_008": "Missing required header: {header}",
+  "API_009": "Invalid request body format. Expected {format}",
+  "API_010": "Feature {feature} is not enabled",
+  "API_011": "Service {service} is temporarily unavailable. Retry after {retryAfter} seconds",
+  "API_012": "Configuration error: {setting}",
+  "API_013": "Invalid API key: {keyId}",
+  "API_014": "API key {keyId} expired on {expiredAt}",
+  "API_015": "Webhook delivery failed to {webhookUrl} after {attempt} attempts: {reason}",
+  "API_016": "Batch request too large. Maximum {maxSize} {unit}, got {actualSize} {unit}",
+  "API_017": "Request timeout after {timeout} seconds",
+  "API_018": "Invalid pagination parameters. Page: {page}, PageSize: {pageSize}. Maximum page size: {maxPageSize}",
+  "API_019": "Invalid sort parameters. Field: {field}, Direction: {direction}",
+  "API_020": "Concurrent modification conflict for {resource} {id}. The resource was modified by another process",
+  "API_024": "Requested endpoint was not found"
+}

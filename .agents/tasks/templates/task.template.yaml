@@ -1,0 +1,71 @@
+id: TASK-000-000
+title: Replace with clear task title
+type: implementation
+status: todo
+owner_agent: backend-implementer
+preferred_provider: codex
+
+description: |
+  Describe the outcome, why it matters, and the exact repository boundary this task owns.
+
+request_context:
+  original_request: Replace with the raw user request or task intake text.
+  normalized_request: Replace with the shortest improved execution brief that preserves the user's intent.
+  improvement_mode: none
+  missing_information: []
+  execution_brief:
+    - Preserve the original request text.
+    - Normalize only when it improves execution quality or exposes a material constraint.
+
+acceptance_criteria:
+  - The requested outcome is implemented within the declared ownership boundary.
+  - Changed and impacted behavior has been reviewed.
+  - Required checks pass or have an explicit, justified skip.
+  - Material assumptions have been verified against the current repository.
+  - Relevant memories and lessons have been reviewed; recurrence prevention is explicit.
+
+risk_areas: []
+prior_lessons_reviewed: []
+preflight_checks:
+  - Read .agents/memories/MEMORY.md before edits begin.
+  - Review matching lessons and risk patterns before edits begin.
+memory_reference: .agents/memories/MEMORY.md
+avoid_repeat_mistakes:
+  - If `risk_areas` include `performance`, `latency`, `auth`, `frontend`, `api`, or `protected-flow`, record the current budget, expected post-change budget, fallback contract, and trace ownership before implementation.
+  - Classify data on hot paths as critical-path versus optional before implementation, and keep optional summaries, counts, or candidate lists off the initial protected path unless measurements prove they belong there.
+  - If a new cache candidate cannot be made correct with explicit write-owner coverage and strong invalidation semantics, reject or defer the cache instead of weakening the safety bar with TTL alone.
+
+files:
+  create: []
+  modify: []
+  delete: []
+
+dependencies: []
+
+required_checks:
+  - lint
+  - typecheck
+  - test_unit
+
+required_reviews:
+  - review_impacted_code
+  - verify_assumptions
+
+required_e2e: false
+
+evidence:
+  prior_lessons_reviewed: []
+  status: null
+  summary: null
+  files_changed: []
+  commands_run: []
+  checks: {}
+  reviews: {}
+  assumptions_verified: []
+  mistakes_observed: []
+  lessons_captured: []
+  new_or_updated_rules: []
+  future_checks_required: []
+  recurrence_risk: low
+  residual_risks: []
+  blockers: []

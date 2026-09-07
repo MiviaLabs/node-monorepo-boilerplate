@@ -1,0 +1,39 @@
+{
+  "name": "opa",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/opa/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/opa",
+        "main": "packages/opa/src/index.ts",
+        "tsConfig": "packages/opa/tsconfig.json",
+        "assets": []
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["jest"],
+        "cwd": "packages/opa"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["npx eslint src"],
+        "cwd": "packages/opa"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["npx tsc -p packages/opa/tsconfig.lib.json --noEmit"]
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:infrastructure", "scope:domain"]
+}

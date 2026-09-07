@@ -1,0 +1,16 @@
+{
+  "theme": "neutral",
+  "themeCSS": ".node rect { fill: #fff; stroke: #333; }",
+  "fontFamily": "Inter, system-ui, sans-serif",
+  "fontSize": 14,
+  "securityLevel": "strict",
+  "er": {
+    "diagramPadding": 20,
+    "layoutDirection": "TB",
+    "useMaxWidth": true
+  },
+  "flowchart": {
+    "curve": "basis",
+    "diagramPadding": 8
+  }
+}

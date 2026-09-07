@@ -1,0 +1,40 @@
+{
+  "name": "schema",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/schema/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/schema",
+        "main": "packages/schema/src/index.ts",
+        "tsConfig": "packages/schema/tsconfig.lib.json",
+        "assets": ["packages/schema/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsx --test src/**/*.test.ts",
+        "cwd": "packages/schema"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint src",
+        "cwd": "packages/schema"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "packages/schema"
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:schema", "scope:primitive"]
+}

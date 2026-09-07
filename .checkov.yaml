@@ -1,0 +1,56 @@
+# Checkov Configuration
+# Infrastructure as Code security scanner
+# Docs: https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html
+
+# Frameworks to scan
+framework:
+  - dockerfile
+  - github_actions
+  - secrets
+  - json
+  - yaml
+
+# Skip specific checks with justification
+# Format: CKV_CHECK_ID: "Justification and ticket reference"
+skip-check:
+  # Docker checks - justify any skips
+  # CKV_DOCKER_2: "Health check handled by orchestrator - SEC-XXX"
+
+  # GitHub Actions checks - justify any skips
+  # Accepted risk during advisory baseline:
+  # Major-version action pinning (e.g. @v4) is currently managed by Dependabot/CODEOWNERS.
+  # Full commit-SHA pinning rollout tracked in SEC-1427.
+  - CKV_GHA_7
+
+# Paths to exclude
+skip-path:
+  - node_modules/
+  - dist/
+  - build/
+  - .next/
+  - coverage/
+  - tmp/
+
+# Accepted risk suppressions must always include ticket references in the comment above.
+
+# Output format for CI
+output:
+  - cli
+  - sarif
+
+# Soft fail during advisory period
+soft-fail: true
+
+# Severity threshold (comment out for all severities)
+# check-severity: HIGH
+
+# Directory to scan (default: current)
+directory:
+  - .
+
+# Compact output
+compact: true
+
+# External checks (future: add custom policies)
+# external-checks-dir:
+#   - .checkov/custom-checks/

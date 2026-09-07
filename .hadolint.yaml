@@ -1,0 +1,53 @@
+# Hadolint Configuration
+# Dockerfile linter
+# Docs: https://github.com/hadolint/hadolint
+
+# Failure threshold (error, warning, info, style, ignore, none)
+failure-threshold: warning
+
+# Output format (tty, json, checkstyle, codeclimate, gitlab_codeclimate, gnu, codacy, sonarqube, sarif)
+format: tty
+
+# Rules to ignore with justification
+ignored:
+  # DL3018: Pin versions in apk add - not always practical for base images
+  # - DL3018
+
+  # DL3008: Pin versions in apt-get - not always practical for base images
+  # - DL3008
+
+# Override rule severities
+override:
+  error:
+    # Critical security rules
+    - DL3000 # Use absolute WORKDIR
+    - DL3001 # No `sudo` usage
+    - DL3002 # Do not switch to root user
+    - DL3004 # Do not use sudo
+    - DL3007 # Using latest tag
+
+  warning:
+    # Best practices
+    - DL3003 # Use WORKDIR instead of cd
+    - DL3006 # Always tag the FROM image
+    - DL3009 # Delete apt-get lists after install
+    - DL3015 # Avoid additional packages with apt-get
+    - DL3025 # Use JSON notation for CMD
+    - DL3045 # COPY --from should reference a previously defined stage
+
+  info:
+    # Style suggestions
+    - DL3020 # Use COPY instead of ADD for files
+    - DL4006 # Set SHELL option -o pipefail
+
+# Trusted registries (images from these don't need pinning)
+trustedRegistries:
+  - docker.io
+  - gcr.io
+  - ghcr.io
+
+# Label schema requirements (optional)
+# label-schema:
+#   author: text
+#   version: semver
+#   maintainer: email

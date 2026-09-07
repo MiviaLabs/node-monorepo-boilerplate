@@ -1,0 +1,71 @@
+# Prometheus Configuration for MiviaLabs Development
+#
+# Metrics endpoints:
+# - API: http://host.docker.internal:3000/metrics (when OTEL_ENABLED=true)
+# - Node Exporter: http://host.docker.internal:9100/metrics (if running)
+# - AlertManager: http://localhost:9093
+#
+# Dashboards:
+# - Prometheus: http://localhost:9090
+# - AlertManager: http://localhost:9093
+
+global:
+  scrape_interval: 15s # Default scrape interval
+  scrape_timeout: 10s # Scrape timeout
+  evaluation_interval: 15s # Evaluate rules every 15 seconds
+  external_labels:
+    monitor: 'node-monorepo-boilerplate-dev'
+    environment: 'development'
+
+# AlertManager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Rule files - Alert definitions
+rule_files:
+  - 'alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # MiviaLabs API metrics (OpenTelemetry)
+  - job_name: 'node-monorepo-boilerplate-api'
+    static_configs:
+      - targets:
+          - 'host.docker.internal:3000' # API server
+        labels:
+          service: 'api'
+          application: 'node-monorepo-boilerplate'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'localhost'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+          - 'localhost:9090'
+
+  # Optional: Node Exporter for system metrics
+  # Uncomment if you run node_exporter locally
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets:
+  #         - 'host.docker.internal:9100'
+
+  # Optional: PostgreSQL Exporter for database metrics
+  # Uncomment if you run postgres_exporter
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets:
+  #         - 'host.docker.internal:9187'
+
+  # Optional: Redis Exporter for cache metrics
+  # Uncomment if you run redis_exporter
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets:
+  #         - 'host.docker.internal:9121'

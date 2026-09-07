@@ -1,0 +1,54 @@
+{
+  "name": "errors",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/errors/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/errors",
+        "main": "packages/errors/src/index.ts",
+        "tsConfig": "packages/errors/tsconfig.lib.json",
+        "assets": [
+          "packages/errors/*.md",
+          {
+            "input": "packages/errors/src",
+            "glob": "**/*.json",
+            "output": "."
+          }
+        ]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsx --test tests/**/*.test.ts",
+        "cwd": "packages/errors"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint src tests",
+        "cwd": "packages/errors"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "packages/errors"
+      }
+    },
+    "generate-factories": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsx src/scripts/generate-factories.ts",
+        "cwd": "packages/errors"
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:errors", "scope:primitive"]
+}

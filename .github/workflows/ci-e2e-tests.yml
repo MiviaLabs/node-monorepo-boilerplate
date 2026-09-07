@@ -1,0 +1,366 @@
+name: CI - E2E Tests
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - staging
+      - main
+  workflow_call:
+
+# Browser E2E is an independent required workflow; branch protection must require this workflow and package CI.
+# Concurrency to cancel outdated runs
+concurrency:
+  group: ci-e2e-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+# Permissions for Gitleaks and other actions
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  should-run:
+    name: Evaluate E2E Scope
+    runs-on: ubuntu-latest
+    outputs:
+      run_e2e: ${{ steps.decision.outputs.run_e2e }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Decide whether E2E is required
+        id: decision
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_call" ]; then
+            echo "run_e2e=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ github.base_ref }}" = "staging" ] || [ "${{ github.base_ref }}" = "main" ]; then
+            echo "run_e2e=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          CHANGED_FILES=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          echo "$CHANGED_FILES"
+
+          if echo "$CHANGED_FILES" | grep -Eq '^(apps/api/|apps/web/|apps/web-e2e/|apps/admin/|apps/admin-e2e/|packages/|docker-compose|compose\.|\.github/workflows/ci-e2e-tests\.yml)'; then
+            echo "run_e2e=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_e2e=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ============================================
+  # STAGE 3: E2E tests (after unit tests pass)
+  # Build auth once, then run E2E tests (3 shards)
+  # ============================================
+
+  # Build auth package once and upload as artifact
+  build-auth:
+    name: Build Auth Package
+    needs: should-run
+    if: needs.should-run.outputs.run_e2e == 'true'
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Setup node_modules cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build auth package (required for decorator metadata in E2E tests)
+        env:
+          NX_DAEMON: 'false'
+        run: pnpm nx build auth --skip-nx-cache
+
+      - name: Upload auth package artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: auth-dist
+          path: dist/packages/auth
+          retention-days: 1
+
+  # E2E tests with Testcontainers (using matrix strategy for 3 shards)
+  test-apps-e2e:
+    name: Test API E2E (${{ matrix.shard }})
+    needs: [should-run, build-auth]
+    if: needs.should-run.outputs.run_e2e == 'true'
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/3', '2/3', '3/3']
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Enable Docker daemon
+        run: |
+          docker info
+
+      - name: Verify Docker socket access
+        run: |
+          ls -la /var/run/docker.sock
+          docker ps
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Setup node_modules cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download auth package artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: auth-dist
+          path: dist/packages/auth
+
+      - name: Start OPA for authorization checks
+        run: docker compose up -d opa
+
+      - name: Wait for OPA readiness
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8181/health >/dev/null; then
+              echo "OPA is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "OPA did not become ready in time"
+          docker compose logs opa || true
+          exit 1
+
+      - name: Run E2E tests shard ${{ matrix.shard }}
+        working-directory: apps/api
+        env:
+          TESTCONTAINERS_DOCKER_SOCKET: /var/run/docker.sock
+          TESTCONTAINERS_RYUK_CONTAINER_PRIVILEGED: 'true'
+          NODE_OPTIONS: --max-old-space-size=6144
+          NODE_ENV: test
+          CI: 'true'
+          GITHUB_ACTIONS: 'true'
+          OPA_ENFORCEMENT_MODE: shadow
+          OPA_ENABLED: 'true'
+          OPA_URL: http://localhost:8181
+          OPA_POLICY_PATH: /v1/data/authz/allow
+        run: npx jest --config=jest.e2e.config.js --shard=${{ matrix.shard }} --testPathIgnorePatterns=test/e2e/opa-strict/
+
+  # Strict OPA smoke tests to guarantee strict-mode capability in CI
+  test-apps-e2e-strict-smoke:
+    name: Test API E2E Strict OPA (smoke)
+    needs: [should-run, build-auth]
+    if: needs.should-run.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Enable Docker daemon
+        run: docker info
+
+      - name: Verify Docker socket access
+        run: |
+          ls -la /var/run/docker.sock
+          docker ps
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Setup node_modules cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download auth package artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: auth-dist
+          path: dist/packages/auth
+
+      - name: Start OPA for strict authorization checks
+        run: docker compose up -d opa
+
+      - name: Wait for OPA readiness
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8181/health >/dev/null; then
+              echo "OPA is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "OPA did not become ready in time"
+          docker compose logs opa || true
+          exit 1
+
+      - name: Run strict OPA smoke E2E
+        working-directory: apps/api
+        env:
+          TESTCONTAINERS_DOCKER_SOCKET: /var/run/docker.sock
+          TESTCONTAINERS_RYUK_CONTAINER_PRIVILEGED: 'true'
+          NODE_OPTIONS: --max-old-space-size=6144
+          NODE_ENV: test
+          CI: 'true'
+          GITHUB_ACTIONS: 'true'
+          OPA_ENFORCEMENT_MODE: strict
+          OPA_ENABLED: 'true'
+          OPA_URL: http://localhost:8181
+          OPA_POLICY_PATH: /v1/data/authz/allow
+        run: npx jest --config=jest.e2e.config.js test/e2e/opa-strict/opa-strict-smoke.e2e.spec.ts --runInBand
+
+  # Browser E2E is a separate required surface for protected web flows.
+  test-web-e2e:
+    name: Test Web Browser E2E
+    needs: should-run
+    if: needs.should-run.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run web browser E2E
+        run: pnpm nx e2e web-e2e
+
+  # Browser E2E is a separate required surface for protected operator flows.
+  test-admin-e2e:
+    name: Test Admin Browser E2E
+    needs: should-run
+    if: needs.should-run.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run admin browser E2E
+        run: pnpm nx e2e admin-e2e

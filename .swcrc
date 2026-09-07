@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/swcrc",
+  "jsc": {
+    "parser": {
+      "syntax": "typescript",
+      "decorators": true,
+      "dynamicImport": true
+    },
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true
+    },
+    "loose": false,
+    "paths": {
+      "@package/*": ["packages/*/src"],
+      "@/*": ["apps/*/src"]
+    },
+    "baseUrl": "."
+  },
+  "module": {
+    "type": "commonjs",
+    "strictMode": false,
+    "noInterop": false
+  },
+  "sourceMaps": true,
+  "exclude": ["node_modules"]
+}

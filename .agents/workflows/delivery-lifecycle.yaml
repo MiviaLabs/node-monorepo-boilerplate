@@ -1,0 +1,91 @@
+name: delivery-lifecycle
+version: 2
+purpose: Move repository work from request to verified closure with explicit ownership and evidence.
+
+principles:
+  - Preserve the user's intent; normalize only to remove execution ambiguity.
+  - Use parallel work only for read-only research or disjoint ownership.
+  - Treat policy, skills, and memories as inputs; treat checks and evidence as proof.
+  - Stop on failed safety, authorization, schema, or required validation gates.
+
+phases:
+  - name: intake
+    owner: orchestrator
+    entry_when: request_received
+    outputs: [original_request, execution_brief, scope, missing_information, research_decision]
+    gates:
+      - preserve_original_request
+      - identify_material_ambiguity
+      - identify_authority_and_scope
+
+  - name: research
+    owner: research-team
+    entry_when: uncertainty_or_risk_is_material
+    outputs: [relevant_paths, observed_patterns, dependencies, constraints, open_questions]
+    gates:
+      - read_only
+      - cite_repository_or_primary_source
+      - synthesize_before_planning
+    skip_when: request_is_low_risk_and_scope_is_known
+
+  - name: planning
+    owner: planner
+    entry_when: intake_complete
+    outputs:
+      [
+        epic,
+        task_files,
+        ownership,
+        dependencies,
+        risk_areas,
+        lessons_reviewed,
+        preflight_checks,
+        required_reviews,
+        required_checks
+      ]
+    gates:
+      - task_schema_valid
+      - ownership_is_explicit
+      - dependencies_are_acyclic
+      - required_e2e_is_explicit
+      - repeat_mistake_prevention_is_explicit
+
+  - name: implementation
+    owner: build-team
+    entry_when: planned_tasks_are_ready
+    outputs: [changed_files, implementation_notes, updated_tests]
+    gates:
+      - respect_file_ownership
+      - follow_applicable_policy_and_skill
+      - preserve_authorization_and_tenant_scope
+      - keep_worktree_changes_explainable
+
+  - name: review
+    owner: quality-team
+    entry_when: implementation_complete
+    outputs: [findings, impacted_paths, assumptions_verified, residual_risks]
+    gates:
+      - review_changed_and_impacted_code
+      - check_known_risk_patterns
+      - resolve_or_record_findings
+      - cap_review_iterations
+
+  - name: validation
+    owner: gate-runner
+    entry_when: review_complete
+    outputs: [commands_run, gate_results, evidence]
+    gates:
+      - run_required_checks
+      - record_exact_commands_and_outcomes
+      - block_close_on_failed_required_gate
+      - verify_generated_surface_implications
+
+  - name: learning-and-close
+    owner: orchestrator
+    entry_when: validation_complete
+    outputs: [lessons_captured, prevention_updates, colocated_evidence, final_summary]
+    gates:
+      - capture_durable_lessons_only
+      - keep_task_artifacts_local
+      - evidence_satisfies_completion_contract
+      - close_task_with_runtime_command

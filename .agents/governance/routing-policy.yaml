@@ -1,0 +1,28 @@
+purpose: Route logical repository roles to provider adapters.
+applies: Orchestration, planning, implementation, review, and validation.
+authority: Provider routing is advisory to the user and runtime; it cannot weaken governance.
+
+defaults:
+  orchestrator: codex
+  planner: codex
+  reviewer: codex
+  code-explorer: codex
+  pattern-matcher: codex
+  dependency-analyzer: codex
+  backend-implementer: codex
+  frontend-implementer: codex
+  test-implementer: codex
+  test-analyzer: codex
+  gate-runner: codex
+
+fallbacks:
+  codex:
+    - claude
+  claude:
+    - codex
+  gemini: []
+
+rules:
+  - Prefer Codex by default for orchestration, planning, implementation, review, and validation in this repository.
+  - Escalate from Codex to Claude only when the task is primarily long-form synthesis or policy writing.
+  - Route Gemini only for explicitly read-only research; never use it for implementation, review approval, gate execution, or task closure.

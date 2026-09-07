@@ -1,0 +1,41 @@
+{
+  "name": "queues",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/queues/src",
+  "projectType": "library",
+  "tags": ["scope:infra"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/queues",
+        "main": "packages/queues/src/index.ts",
+        "tsConfig": "packages/queues/tsconfig.lib.json",
+        "assets": ["packages/queues/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "TEST_MODE=true npx tsx --test src/__tests__/job.unit.test.ts src/__tests__/queue.unit.test.ts src/__tests__/worker.unit.test.ts src/__tests__/scheduler.unit.test.ts",
+        "cwd": "packages/queues"
+      }
+    },
+    "test:module": {
+      "description": "Decorator-dependent module wiring test — runs under jest+swc because tsx/esbuild cannot transform parameter decorators.",
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx jest --config jest.config.js",
+        "cwd": "packages/queues"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint src",
+        "cwd": "packages/queues"
+      }
+    }
+  }
+}

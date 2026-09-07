@@ -1,0 +1,308 @@
+operations:
+  - name: intake
+    category: coordination
+    description: Normalize the request, classify work, and decide whether research is required.
+
+  - name: task-breakdown
+    category: planning
+    description: Emit executable epic and task YAML files with dependencies, ownership, and checks.
+
+  - name: execute-task
+    category: execution
+    description: Complete one task while respecting ownership, policies, and evidence requirements.
+
+  - name: review-change
+    category: review
+    description: Review changed and impacted code for bugs, regressions, and policy violations.
+
+  - name: run-gates
+    category: validation
+    description: Run required repository checks and attach results to task evidence.
+
+skills:
+  - name: design-motion-principles
+    category: design
+    description: Expert motion and interaction design auditor based on Emil Kowalski, Jakub Krehel, and Jhey Tompkins.
+    canonical_path: .agents/skills/design-motion-principles
+    risk_areas: [design-system, ui, compliance]
+    lifecycle_phases: [planning, review, validation]
+    required_checks: [lint, test_unit]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    provider_aliases:
+      codex: design-motion-principles
+      claude: design-motion-principles
+      github-copilot: design-motion-principles
+    mirror_paths:
+      codex:
+        - .agents/skills/design-motion-principles
+      claude:
+        - .claude/skills/design-motion-principles
+      github-copilot:
+        - .github/skills/design-motion-principles
+
+  - name: api-cqrs-tenant-safety
+    category: backend
+    description: Preserve CQRS boundaries, tenant scoping, repository patterns, protected API flow constraints, and hot-path query-shaping guardrails in the NestJS API.
+    canonical_path: .agents/skills/api-cqrs-tenant-safety
+    risk_areas: [backend, api, cqrs, tenant-safety, data, performance]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    provider_aliases:
+      codex: api-cqrs-tenant-safety
+      claude: api-cqrs-tenant-safety
+      github-copilot: api-cqrs-tenant-safety
+    mirror_paths:
+      codex:
+        - .agents/skills/api-cqrs-tenant-safety
+      claude:
+        - .claude/skills/api-cqrs-tenant-safety
+      github-copilot:
+        - .github/skills/api-cqrs-tenant-safety
+
+  - name: api-auth-tenant-flows
+    category: backend
+    description: Protect API auth, session, tenant routing, audit behavior, trace propagation, and protected-read hot-path budgets across NestJS auth flows.
+    canonical_path: .agents/skills/api-auth-tenant-flows
+    risk_areas: [auth, session, tenant-routing, protected-flow, tracing, performance]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit, test_e2e]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_e2e: true
+    provider_aliases:
+      codex: api-auth-tenant-flows
+      claude: api-auth-tenant-flows
+      github-copilot: api-auth-tenant-flows
+    mirror_paths:
+      codex:
+        - .agents/skills/api-auth-tenant-flows
+      claude:
+        - .claude/skills/api-auth-tenant-flows
+      github-copilot:
+        - .github/skills/api-auth-tenant-flows
+
+  - name: api-cqrs-outbox
+    category: backend
+    description: Keep API CQRS handlers, controllers, repositories, transactional outbox behavior, and hot-path read shaping aligned with existing patterns.
+    canonical_path: .agents/skills/api-cqrs-outbox
+    risk_areas: [backend, cqrs, events, audit, data]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit, test_integration]
+    required_reviews: [review_impacted_code, review_audit_decisions]
+    provider_aliases:
+      codex: api-cqrs-outbox
+      claude: api-cqrs-outbox
+      github-copilot: api-cqrs-outbox
+    mirror_paths:
+      codex:
+        - .agents/skills/api-cqrs-outbox
+      claude:
+        - .claude/skills/api-cqrs-outbox
+      github-copilot:
+        - .github/skills/api-cqrs-outbox
+
+  - name: api-testcontainers-jest-e2e
+    category: backend
+    description: Reuse the repository's Jest plus Testcontainers API E2E bootstrap, tenant fixtures, and helper patterns.
+    canonical_path: .agents/skills/api-testcontainers-jest-e2e
+    risk_areas: [testing, database, integrations]
+    lifecycle_phases: [planning, execution, validation]
+    required_checks: [test_integration, test_e2e]
+    required_reviews: [verify_assumptions]
+    required_e2e: true
+    provider_aliases:
+      codex: api-testcontainers-jest-e2e
+      claude: api-testcontainers-jest-e2e
+      github-copilot: api-testcontainers-jest-e2e
+    mirror_paths:
+      codex:
+        - .agents/skills/api-testcontainers-jest-e2e
+      claude:
+        - .claude/skills/api-testcontainers-jest-e2e
+      github-copilot:
+        - .github/skills/api-testcontainers-jest-e2e
+
+  - name: audit-outbox-tracing
+    category: backend
+    description: Protect audit decisions, outbox publication, and request-correlation propagation across API write flows.
+    canonical_path: .agents/skills/audit-outbox-tracing
+    risk_areas: [audit, events, tracing, data, privacy]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit]
+    required_reviews: [review_impacted_code, review_audit_decisions]
+    provider_aliases:
+      codex: audit-outbox-tracing
+      claude: audit-outbox-tracing
+      github-copilot: audit-outbox-tracing
+    mirror_paths:
+      codex:
+        - .agents/skills/audit-outbox-tracing
+      claude:
+        - .claude/skills/audit-outbox-tracing
+      github-copilot:
+        - .github/skills/audit-outbox-tracing
+
+  - name: api-storage-file-lifecycle
+    category: backend
+    description: Preserve the shared storage file lifecycle across packages/storage, db-core file metadata, and apps/api storage integrations, including API-proxy and presigned upload transport decisions.
+    canonical_path: .agents/skills/api-storage-file-lifecycle
+    risk_areas: [storage, upload, data, api, security]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit, test_integration]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    provider_aliases:
+      codex: api-storage-file-lifecycle
+      claude: api-storage-file-lifecycle
+      github-copilot: api-storage-file-lifecycle
+    mirror_paths:
+      codex:
+        - .agents/skills/api-storage-file-lifecycle
+      claude:
+        - .claude/skills/api-storage-file-lifecycle
+      github-copilot:
+        - .github/skills/api-storage-file-lifecycle
+
+  - name: web-auth-proxy-flows
+    category: frontend
+    description: Secure the complete Next.js authentication and proxy lifecycle from browser route to API boundary.
+    canonical_path: .agents/skills/web-auth-proxy-flows
+    risk_areas: [auth, session, tenant-routing, protected-flow, tracing, performance]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit, test_e2e]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_e2e: true
+    replaces: [web-auth-proxy-routes]
+    provider_aliases:
+      codex: web-auth-proxy-flows
+      claude: web-auth-proxy-flows
+      github-copilot: web-auth-proxy-flows
+    mirror_paths:
+      codex:
+        - .agents/skills/web-auth-proxy-flows
+      claude:
+        - .claude/skills/web-auth-proxy-flows
+      github-copilot:
+        - .github/skills/web-auth-proxy-flows
+
+  - name: tenant-dashboard-query-state
+    category: frontend
+    description: Reuse the dashboard members and projects pattern for URL-driven filters, server-first data loading, optimistic table mutations, and bounded page-level read behavior.
+    canonical_path: .agents/skills/tenant-dashboard-query-state
+    risk_areas: [dashboard, dashboard-state, web, performance, tenant-safety]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    provider_aliases:
+      codex: tenant-dashboard-query-state
+      claude: tenant-dashboard-query-state
+      github-copilot: tenant-dashboard-query-state
+    mirror_paths:
+      codex:
+        - .agents/skills/tenant-dashboard-query-state
+      claude:
+        - .claude/skills/tenant-dashboard-query-state
+      github-copilot:
+        - .github/skills/tenant-dashboard-query-state
+
+  - name: admin-operator-flows
+    category: admin
+    description: Secure the complete admin operator session, route, API-bridge, and failure-recovery lifecycle.
+    canonical_path: .agents/skills/admin-operator-flows
+    risk_areas: [admin, admin-auth, session, tenant-routing, protected-flow]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit, test_e2e]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_e2e: true
+    replaces: [admin-session-ops]
+    provider_aliases:
+      codex: admin-operator-flows
+      claude: admin-operator-flows
+      github-copilot: admin-operator-flows
+    mirror_paths:
+      codex:
+        - .agents/skills/admin-operator-flows
+      claude:
+        - .claude/skills/admin-operator-flows
+      github-copilot:
+        - .github/skills/admin-operator-flows
+
+  - name: admin-inventory-pages
+    category: admin
+    description: Build admin list and detail pages with the repository's scoped filtering, row actions, and admin-shell patterns.
+    canonical_path: .agents/skills/admin-inventory-pages
+    risk_areas: [admin, admin-ui, tenant-safety, protected-flow]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit, test_e2e]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    required_e2e: true
+    provider_aliases:
+      codex: admin-inventory-pages
+      claude: admin-inventory-pages
+      github-copilot: admin-inventory-pages
+    mirror_paths:
+      codex:
+        - .agents/skills/admin-inventory-pages
+      claude:
+        - .claude/skills/admin-inventory-pages
+      github-copilot:
+        - .github/skills/admin-inventory-pages
+
+  - name: agentic-runtime-governance
+    category: repo-ops
+    description: Work safely within the task, evidence, lessons, and completion-contract runtime defined in .agents.
+    canonical_path: .agents/skills/agentic-runtime-governance
+    risk_areas: [contract, config, security, testing, docs]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, typecheck, test_unit]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    provider_aliases:
+      codex: agentic-runtime-governance
+      claude: agentic-runtime-governance
+      github-copilot: agentic-runtime-governance
+    mirror_paths:
+      codex:
+        - .agents/skills/agentic-runtime-governance
+      claude:
+        - .claude/skills/agentic-runtime-governance
+      github-copilot:
+        - .github/skills/agentic-runtime-governance
+
+  - name: provider-copilot-sync
+    category: repo-ops
+    description: Keep provider adapters, custom agents, project skills, and Copilot instructions aligned with .agents.
+    canonical_path: .agents/skills/provider-copilot-sync
+    risk_areas: [contract, config, security, docs]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, test_unit]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    provider_aliases:
+      codex: provider-copilot-sync
+      claude: provider-copilot-sync
+      github-copilot: provider-copilot-sync
+    mirror_paths:
+      codex:
+        - .agents/skills/provider-copilot-sync
+      claude:
+        - .claude/skills/provider-copilot-sync
+      github-copilot:
+        - .github/skills/provider-copilot-sync
+
+  - name: runtime-instruction-alignment
+    category: repo-ops
+    description: Keep .agents, provider adapters, GitHub Copilot instructions, generated skill mirrors, and custom agent aliases synchronized.
+    canonical_path: .agents/skills/runtime-instruction-alignment
+    risk_areas: [contract, config, security, docs]
+    lifecycle_phases: [planning, execution, review, validation]
+    required_checks: [lint, test_unit]
+    required_reviews: [review_impacted_code, verify_assumptions]
+    provider_aliases:
+      codex: runtime-instruction-alignment
+      claude: runtime-instruction-alignment
+      github-copilot: runtime-instruction-alignment
+    mirror_paths:
+      codex:
+        - .agents/skills/runtime-instruction-alignment
+      claude:
+        - .claude/skills/runtime-instruction-alignment
+      github-copilot:
+        - .github/skills/runtime-instruction-alignment

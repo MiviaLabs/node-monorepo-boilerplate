@@ -1,0 +1,50 @@
+# Ona Automations Configuration
+# Equivalent to .gitpod.yml tasks
+# See: https://ona.com/docs/ona/configuration/devcontainer/automations
+
+automations:
+  # Install dependencies on environment creation
+  - name: install-dependencies
+    trigger:
+      - postDevcontainerStart
+    commands:
+      - pnpm install
+
+  # Run database migrations
+  - name: db-migrate
+    trigger:
+      - manual
+    commands:
+      - pnpm db:migrate
+      - pnpm db-outbox:migrate
+
+  # Start development servers
+  - name: dev-api
+    trigger:
+      - manual
+    commands:
+      - pnpm run dev:api
+
+  - name: dev-web
+    trigger:
+      - manual
+    commands:
+      - pnpm run dev:web
+
+  # Run tests
+  - name: test
+    trigger:
+      - manual
+    commands:
+      - pnpm run test:types
+      - pnpm run test:utils
+      - pnpm run test:schema
+      - pnpm run test:constants
+
+  # Lint and typecheck
+  - name: quality-check
+    trigger:
+      - manual
+    commands:
+      - pnpm run lint:all
+      - pnpm run typecheck:all

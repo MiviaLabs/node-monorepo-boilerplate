@@ -1,0 +1,60 @@
+flowchart TD
+    subgraph "CORE"
+        constants["@package/constants"]
+        errors["@package/errors"]
+        schema["@package/schema"]
+        types["@package/types"]
+        utils["@package/utils"]
+    end
+    subgraph "FEATURE"
+        auth["@package/auth"]
+        core["@package/core"]
+        events["@package/events"]
+        i18n["@package/i18n"]
+        tasks["@package/tasks"]
+    end
+    subgraph "INFRASTRUCTURE"
+        db-core["@package/db-core"]
+        db-outbox["@package/db-outbox"]
+        email["@package/email"]
+        encryption["@package/encryption"]
+        observability["@package/observability"]
+        opa["@package/opa"]
+        pubsub["@package/pubsub"]
+        queues["@package/queues"]
+        redis["@package/redis"]
+        secrets["@package/secrets"]
+        storage["@package/storage"]
+        test-utils["@package/test-utils"]
+    end
+
+    auth --> constants
+    auth --> core
+    auth --> db-core
+    auth --> redis
+    email --> core
+    email --> queues
+    events --> core
+    events --> db-outbox
+    events --> observability
+    events --> pubsub
+    events --> queues
+    events --> schema
+    events --> tasks
+    observability --> core
+    pubsub --> constants
+    pubsub --> core
+    pubsub --> observability
+    queues --> core
+    queues --> observability
+    queues --> pubsub
+    queues --> redis
+    queues --> tasks
+    redis --> core
+    secrets --> core
+    storage --> core
+    tasks --> core
+    tasks --> observability
+    test-utils --> db-core
+    test-utils --> db-outbox
+    types --> constants

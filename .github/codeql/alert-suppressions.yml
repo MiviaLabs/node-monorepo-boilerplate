@@ -1,0 +1,24 @@
+# CodeQL Alert Suppressions
+#
+# This file suppresses false positive CodeQL alerts.
+# Each suppression must include a clear justification.
+#
+# Format: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/managing-code-scanning-alerts-for-your-repository#dismissing-alerts-in-bulk
+
+- ruleId: js/insufficient-password-hash
+  paths:
+    - packages/utils/src/crypto.util.ts
+  justification: |
+    False positive - hashEmail() is for deterministic email lookup hashing, NOT password storage.
+
+    Security Context:
+    - This function hashes EMAIL ADDRESSES for database lookups (indexed column)
+    - SHA-256 is intentionally used for fast, deterministic lookups
+    - Actual emails are stored encrypted (AES-256-GCM) separately
+    - Passwords are hashed using bcrypt with salt rounds (separate implementation)
+
+    SHA-256 is the CORRECT choice here because:
+    1. Email lookups must be deterministic (same email = same hash)
+    2. The hash is used as an indexed database column for performance
+    3. Slow hashing (bcrypt) would defeat the purpose of indexed lookups
+    4. The actual email is encrypted separately for confidentiality

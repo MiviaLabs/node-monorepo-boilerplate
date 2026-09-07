@@ -1,0 +1,10 @@
+{
+  "email": {
+    "required": "Email is required",
+    "invalid": "Email format is invalid"
+  },
+  "password": {
+    "weak": "Password is too weak",
+    "required": "Password is required"
+  }
+}

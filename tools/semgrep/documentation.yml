@@ -1,0 +1,204 @@
+# JSDoc Documentation Enforcement Rules
+# ============================================================================
+# These rules enforce JSDoc documentation standards across the monorepo.
+# All rules have metadata.category: documentation
+#
+# Usage:
+#   semgrep scan --config tools/semgrep/documentation.yml
+#   pnpm run lint:docs
+#
+# Integration:
+#   - Pre-commit: Advisory (findings do not block the commit)
+#   - Security CI: Run alongside the security rules
+#   - CI: Runs as part of quality gates
+# ============================================================================
+
+rules:
+  - id: jsdoc-schema-requires-example
+    languages: [typescript]
+    severity: ERROR
+    message: Exported Zod schema should have JSDoc with @example tag demonstrating usage.
+    metadata:
+      category: documentation
+      technology: [typescript, zod]
+    paths:
+      include:
+        - /packages/**/src/**/*.ts
+        - /apps/**/src/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/test/**'
+        - '**/tests/**'
+        - '**/index.ts'
+        - '**/node_modules/**'
+        - '**/dist/**'
+    patterns:
+      - pattern-regex: 'export\s+const\s+\w+Schema\s*=\s*z\.'
+      - pattern-not-regex: '(?s)/\*\*.*?@example.*?\*/\s*export\s+const\s+\w+Schema\s*=\s*z\.'
+
+  - id: jsdoc-function-requires-param-returns
+    languages: [typescript]
+    severity: ERROR
+    message: Exported functions should have JSDoc with @param or @returns tags.
+    metadata:
+      category: documentation
+      technology: [typescript]
+    paths:
+      include:
+        - /packages/**/src/**/*.ts
+        - /apps/**/src/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/test/**'
+        - '**/tests/**'
+        - '**/index.ts'
+        - '**/node_modules/**'
+        - '**/dist/**'
+    patterns:
+      - pattern-either:
+          - pattern-regex: 'export\s+function\s+\w+\s*\([^)]*\)'
+          - pattern-regex: 'export\s+const\s+\w+\s*=\s*(?:async\s+)?\([^)]*\)\s*(?::\s*[^=]+)?\s*=>'
+      - pattern-not-regex: '(?s)/\*\*.*?(?:@param|@returns).*?\*/\s*export\s+'
+
+  - id: jsdoc-function-no-docs
+    languages: [typescript]
+    severity: ERROR
+    message: Exported functions should have JSDoc with @param or @returns tags.
+    metadata:
+      category: documentation
+      technology: [typescript]
+    paths:
+      include:
+        - /packages/**/src/**/*.ts
+        - /apps/**/src/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/test/**'
+        - '**/tests/**'
+        - '**/index.ts'
+        - '**/node_modules/**'
+        - '**/dist/**'
+        - '**/*.d.ts'
+    pattern-regex: '(?m)(?<!\*/\n)^export\s+function\s+\w+\s*\('
+
+  - id: jsdoc-function-missing-tags
+    languages: [typescript]
+    severity: ERROR
+    message: Exported functions should have JSDoc with @param or @returns tags.
+    metadata:
+      category: documentation
+      technology: [typescript]
+    paths:
+      include:
+        - /packages/**/src/**/*.ts
+        - /apps/**/src/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/test/**'
+        - '**/tests/**'
+        - '**/index.ts'
+        - '**/node_modules/**'
+        - '**/dist/**'
+    patterns:
+      - pattern-regex: '/\*\*(?:[^*]|\*(?!/))*\*/\s*export\s+function\s+\w+\s*\('
+      - pattern-not-regex: '\*\s*@(?:param|returns)\s'
+
+  - id: jsdoc-arrow-function-no-docs
+    languages: [typescript]
+    severity: ERROR
+    message: Exported functions should have JSDoc with @param or @returns tags.
+    metadata:
+      category: documentation
+      technology: [typescript]
+    paths:
+      include:
+        - /packages/**/src/**/*.ts
+        - /apps/**/src/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/test/**'
+        - '**/tests/**'
+        - '**/index.ts'
+        - '**/node_modules/**'
+        - '**/dist/**'
+    pattern-regex: '(?<!\*/\n)export\s+const\s+\w+\s*=\s*(?:async\s+)?\('
+
+  - id: jsdoc-arrow-function-missing-tags
+    languages: [typescript]
+    severity: ERROR
+    message: Exported functions should have JSDoc with @param or @returns tags.
+    metadata:
+      category: documentation
+      technology: [typescript]
+    paths:
+      include:
+        - /packages/**/src/**/*.ts
+        - /apps/**/src/**/*.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/test/**'
+        - '**/tests/**'
+        - '**/index.ts'
+        - '**/node_modules/**'
+        - '**/dist/**'
+    patterns:
+      - pattern-regex: '/\*\*(?:[^*]|\*(?!/))*\*/\s*export\s+const\s+\w+\s*=\s*(?:async\s+)?\('
+      - pattern-not-regex: '\*\s*@(?:param|returns)\s'
+
+  - id: jsdoc-module-requires-documentation
+    languages: [typescript]
+    severity: ERROR
+    message: Index files should have module-level JSDoc with @module or @packageDocumentation tag.
+    metadata:
+      category: documentation
+      technology: [typescript]
+    paths:
+      include:
+        - /packages/**/index.ts
+        - /apps/**/index.ts
+      exclude:
+        - '**/node_modules/**'
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/test/**'
+        - '**/tests/**'
+        - '**/dist/**'
+        - '**/build/**'
+        - '**/.next/**'
+    patterns:
+      - pattern-regex: '\A\s*(?:import|export)\s+'
+      - pattern-not-regex: '(?s)\A\s*/\*\*.*?(?:@module|@packageDocumentation).*?\*/'
+
+  - id: jsdoc-validator-requires-documentation
+    languages: [typescript]
+    severity: ERROR
+    message: Validator schemas should have multi-line JSDoc describing validation criteria.
+    metadata:
+      category: documentation
+      technology: [typescript, zod]
+    paths:
+      include:
+        - /packages/**/*.validator.ts
+        - /apps/**/*.validator.ts
+      exclude:
+        - '**/__tests__/**'
+        - '**/*.spec.ts'
+        - '**/*.test.ts'
+        - '**/node_modules/**'
+        - '**/dist/**'
+    patterns:
+      - pattern-regex: 'export\s+const\s+\w+Schema\s*='
+      - pattern-not-regex: '(?s)/\*\*\s*\n.*?\n.*?\*/\s*export\s+const\s+\w+Schema\s*='

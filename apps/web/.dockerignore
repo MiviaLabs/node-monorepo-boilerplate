@@ -1,0 +1,77 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+*.log
+.nx/cache
+
+# Build outputs
+dist
+build
+.next
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+.github
+
+# Documentation
+README.md
+*.md
+!CLAUDE.md
+
+# CI/CD
+.gitlab-ci.yml
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Local env files
+.env
+.env*.local
+.env.*.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Misc
+*.pem
+*.key
+
+# Claude files
+.claude
+
+# Tests
+__tests__
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+e2e
+
+# Development files
+.eslintrc.json
+.prettierrc
+prettier.config.js
+# Development files
+.eslintrc.json
+.prettierrc
+prettier.config.js

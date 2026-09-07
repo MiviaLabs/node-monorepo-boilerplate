@@ -1,0 +1,35 @@
+name: review-cycle
+version: 2
+purpose: Run a bounded, evidence-producing review loop after implementation.
+
+steps:
+  - id: context
+    action: Read the task, applicable policy and skills, MEMORY.md, and matching lessons.
+  - id: inspect
+    action: Review changed files and their direct consumers.
+  - id: challenge
+    action: Test assumptions, failure paths, authorization boundaries, and known risks.
+  - id: findings
+    action: Record concrete findings with severity, path, and recommended fix.
+  - id: fix
+    action: Resolve findings within ownership or escalate with a blocker.
+  - id: verify
+    action: Rerun affected checks and confirm the finding is closed.
+  - id: close
+    action: Attach colocated evidence only after required checks and reviews pass.
+
+limits:
+  review_iterations: 3
+  gate_retries: 2
+
+stop_conditions:
+  - required_check_failed_without_resolution
+  - authorization_or_tenant_boundary_is_unclear
+  - task_schema_or_dependency_contract_is_invalid
+  - ownership_conflict_cannot_be_resolved
+
+outputs:
+  findings: required
+  assumptions_verified: required
+  residual_risks: required
+  evidence: required

@@ -1,0 +1,328 @@
+name: Static Analysis
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/**/*.sh'
+      - 'apps/**/entrypoint.sh'
+      - 'apps/api/Dockerfile'
+      - 'apps/web/Dockerfile'
+      - '.github/scripts/**/*.sh'
+      - 'tools/**/*.sh'
+      - 'packages/opa/policies/**'
+  push:
+    branches: [dev, staging, main]
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/**/*.sh'
+      - 'apps/**/entrypoint.sh'
+      - 'apps/api/Dockerfile'
+      - 'apps/web/Dockerfile'
+      - '.github/scripts/**/*.sh'
+      - 'tools/**/*.sh'
+      - 'packages/opa/policies/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  actionlint:
+    name: Actionlint
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ github.event_name != 'pull_request' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install Actionlint
+        run: |
+          mkdir -p "${RUNNER_TEMP}/bin"
+          curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/914e7df21a07ef503a81201c76d2b11c789d3fca/scripts/download-actionlint.bash \
+            | bash -s -- 1.7.12 "${RUNNER_TEMP}/bin"
+          echo "${RUNNER_TEMP}/bin" >> $GITHUB_PATH
+
+      - name: Run Actionlint
+        run: |
+          set +e
+          actionlint \
+            -ignore 'shellcheck reported issue' \
+            .github/workflows/*.yml > actionlint-report.txt 2>&1
+          echo "$?" > actionlint-exit-code.txt
+          exit 0
+
+      - name: Enforce Actionlint policy on PRs
+        if: github.event_name == 'pull_request'
+        run: |
+          EXIT_CODE="$(cat actionlint-exit-code.txt)"
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "::error::Actionlint reported workflow errors (exit code $EXIT_CODE)"
+            echo "---- Actionlint findings (first 120 lines) ----"
+            sed -n '1,120p' actionlint-report.txt
+            exit 1
+          fi
+
+      - name: Upload Actionlint report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: actionlint-report
+          path: actionlint-report.txt
+          retention-days: 30
+
+      - name: Add Actionlint summary
+        if: always()
+        run: |
+          echo "## Actionlint" >> $GITHUB_STEP_SUMMARY
+          if [ -s actionlint-report.txt ]; then
+            ISSUE_COUNT=$(grep -Ec ':[0-9]+:[0-9]+:' actionlint-report.txt || echo "0")
+            echo "- Findings: $ISSUE_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- Top findings:" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            head -n 20 actionlint-report.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No findings reported." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  shellcheck:
+    name: Shellcheck
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ github.event_name != 'pull_request' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install Shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run Shellcheck
+        run: |
+          set +e
+          shellcheck -S error scripts/**/*.sh apps/**/entrypoint.sh .github/scripts/*.sh tools/**/*.sh > shellcheck-report.txt 2>&1
+          EXIT_CODE=$?
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            shellcheck -S error scripts/load-1password-secrets.sh apps/api/entrypoint.sh apps/web/entrypoint.sh .github/scripts/*.sh tools/sbom/validate.sh > shellcheck-report.txt 2>&1
+            EXIT_CODE=$?
+          fi
+          echo "$EXIT_CODE" > shellcheck-exit-code.txt
+          exit 0
+
+      - name: Enforce Shellcheck policy on PRs
+        if: github.event_name == 'pull_request'
+        run: |
+          EXIT_CODE="$(cat shellcheck-exit-code.txt)"
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "::error::Shellcheck reported error-level findings (exit code $EXIT_CODE)"
+            echo "---- Shellcheck findings (first 120 lines) ----"
+            sed -n '1,120p' shellcheck-report.txt
+            exit 1
+          fi
+
+      - name: Upload Shellcheck report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: shellcheck-report
+          path: shellcheck-report.txt
+          retention-days: 30
+
+      - name: Add Shellcheck summary
+        if: always()
+        run: |
+          echo "## Shellcheck" >> $GITHUB_STEP_SUMMARY
+          if [ -s shellcheck-report.txt ]; then
+            ISSUE_COUNT=$(grep -Eoc 'SC[0-9]{4}' shellcheck-report.txt || echo "0")
+            echo "- Findings: $ISSUE_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- Top findings:" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            head -n 20 shellcheck-report.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No findings reported." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  hadolint:
+    name: Hadolint
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ github.event_name != 'pull_request' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install Hadolint
+        run: |
+          mkdir -p "${RUNNER_TEMP}/bin"
+          # Retry with exponential backoff (max 5 attempts, ~30s total)
+          MAX_ATTEMPTS=5
+          DELAY=2
+          ATTEMPT=1
+
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            if curl -sSfL -o "${RUNNER_TEMP}/bin/hadolint" \
+              https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64; then
+              chmod +x "${RUNNER_TEMP}/bin/hadolint"
+              echo "${RUNNER_TEMP}/bin" >> $GITHUB_PATH
+              echo "Hadolint installed successfully (attempt $ATTEMPT)"
+              exit 0
+            fi
+
+            if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+              echo "Download attempt $ATTEMPT failed, retrying in ${DELAY}s..."
+              sleep $DELAY
+              DELAY=$((DELAY * 2))
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+
+          echo "::error::Failed to download hadolint after $MAX_ATTEMPTS attempts"
+          exit 1
+
+      - name: Run Hadolint
+        run: |
+          set +e
+          hadolint -t error apps/api/Dockerfile apps/web/Dockerfile > hadolint-report.txt 2>&1
+          echo "$?" > hadolint-exit-code.txt
+          exit 0
+
+      - name: Enforce Hadolint policy on PRs
+        if: github.event_name == 'pull_request'
+        run: |
+          EXIT_CODE="$(cat hadolint-exit-code.txt)"
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "::error::Hadolint reported error-level findings (exit code $EXIT_CODE)"
+            echo "---- Hadolint findings (first 120 lines) ----"
+            sed -n '1,120p' hadolint-report.txt
+            exit 1
+          fi
+
+      - name: Upload Hadolint report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: hadolint-report
+          path: hadolint-report.txt
+          retention-days: 30
+
+      - name: Add Hadolint summary
+        if: always()
+        run: |
+          echo "## Hadolint" >> $GITHUB_STEP_SUMMARY
+          if [ -s hadolint-report.txt ]; then
+            ISSUE_COUNT=$(grep -Eoc 'DL[0-9]{4}' hadolint-report.txt || echo "0")
+            echo "- Findings: $ISSUE_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- Top findings:" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            head -n 20 hadolint-report.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No findings reported." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  opa:
+    name: OPA Policy Validation
+    # runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ github.event_name != 'pull_request' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin ${{ github.base_ref }}
+            CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          fi
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          if echo "$CHANGED_FILES" | grep -q "^packages/opa/policies/"; then
+            echo "has_opa_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_opa_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install OPA
+        if: steps.changed-files.outputs.has_opa_changes == 'true'
+        run: |
+          set -e
+          mkdir -p "${RUNNER_TEMP}/bin"
+          OPA_VERSION="v0.64.1"
+          OPA_URL="https://openpolicyagent.org/downloads/${OPA_VERSION}/opa_linux_amd64"
+          OPA_CHECKSUM_URL="${OPA_URL}.sha256"
+
+          curl -L -o "${RUNNER_TEMP}/bin/opa_linux_amd64" "${OPA_URL}"
+          curl -L -o "${RUNNER_TEMP}/bin/opa_linux_amd64.sha256" "${OPA_CHECKSUM_URL}"
+
+          (
+            cd "${RUNNER_TEMP}/bin"
+            sha256sum -c opa_linux_amd64.sha256
+          )
+          mv "${RUNNER_TEMP}/bin/opa_linux_amd64" "${RUNNER_TEMP}/bin/opa"
+          chmod +x "${RUNNER_TEMP}/bin/opa"
+          echo "${RUNNER_TEMP}/bin" >> $GITHUB_PATH
+
+      - name: Validate OPA policy syntax
+        if: steps.changed-files.outputs.has_opa_changes == 'true'
+        run: |
+          set +e
+          FAILED=0
+          while IFS= read -r policy; do
+            echo "Validating: $policy"
+            opa check "$policy"
+            if [ $? -ne 0 ]; then
+              FAILED=1
+              echo "::error file=$policy::OPA validation failed for $policy"
+            fi
+          done < <(find packages/opa/policies -name "*.rego" -type f)
+          echo "$FAILED" > opa-exit-code.txt
+          exit 0
+
+      - name: Enforce OPA policy on PRs
+        if: github.event_name == 'pull_request' && steps.changed-files.outputs.has_opa_changes == 'true'
+        run: |
+          EXIT_CODE="$(cat opa-exit-code.txt)"
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "::error::OPA policy validation failed"
+            exit 1
+          fi
+
+      - name: Add OPA summary
+        if: always() && steps.changed-files.outputs.has_opa_changes == 'true'
+        run: |
+          echo "## OPA Policy Validation" >> $GITHUB_STEP_SUMMARY
+          EXIT_CODE="$(cat opa-exit-code.txt 2>/dev/null || echo '0')"
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            POLICY_COUNT=$(find packages/opa/policies -name "*.rego" -type f | wc -l)
+            echo "- All policies validated successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- Total policies checked: $POLICY_COUNT" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Validation failed - see errors above" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Skip OPA check (no policy changes)
+        if: always() && steps.changed-files.outputs.has_opa_changes == 'false'
+        run: |
+          echo "## OPA Policy Validation" >> $GITHUB_STEP_SUMMARY
+          echo "- Skipped (no changes to packages/opa/policies/)" >> $GITHUB_STEP_SUMMARY

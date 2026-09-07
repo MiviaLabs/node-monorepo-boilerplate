@@ -1,0 +1,318 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "last_reviewed": "2026-09-07",
+    "format": "reference-only",
+    "description": "Non-authoritative authorization reference metadata for documentation and agent context",
+    "authority": "packages/opa/policies/authz/",
+    "constants_reference": "packages/constants/src/domain/"
+  },
+  "roles": {
+    "system_owner": {
+      "name": "System Owner",
+      "scope": "system",
+      "level": 100,
+      "permissions": ["*"],
+      "inherits": [],
+      "description": "Full system control, can manage all tenants and users",
+      "use_cases": ["Platform founder", "Super admin", "Emergency access"]
+    },
+    "system_admin": {
+      "name": "System Admin",
+      "scope": "system",
+      "level": 90,
+      "permissions": [
+        "tenants:read",
+        "tenants:write",
+        "users:read",
+        "organizations:read",
+        "policies:read"
+      ],
+      "inherits": [],
+      "description": "System operations, can view all tenants and perform non-destructive actions",
+      "use_cases": ["Support staff", "Auditors", "Platform operators"]
+    },
+    "tenant_owner": {
+      "name": "Tenant Owner",
+      "scope": "tenant",
+      "level": 50,
+      "permissions": [
+        "users:read",
+        "users:write",
+        "users:delete",
+        "organizations:read",
+        "organizations:write",
+        "projects:read",
+        "projects:write",
+        "projects:delete"
+      ],
+      "inherits": ["tenant_admin"],
+      "description": "Full tenant control, can manage tenant settings and all members",
+      "use_cases": ["Organization owner", "Company admin"]
+    },
+    "tenant_admin": {
+      "name": "Tenant Admin",
+      "scope": "tenant",
+      "level": 40,
+      "permissions": [
+        "users:read",
+        "users:write",
+        "organizations:read",
+        "organizations:write",
+        "projects:read",
+        "projects:write"
+      ],
+      "inherits": ["tenant_user"],
+      "description": "Tenant operations, can manage members and resources (except delete)",
+      "use_cases": ["Organization manager", "Team lead"]
+    },
+    "tenant_user": {
+      "name": "Tenant User",
+      "scope": "tenant",
+      "level": 20,
+      "permissions": [
+        "users:read:own",
+        "organizations:read:own",
+        "projects:read",
+        "projects:write:own"
+      ],
+      "inherits": [],
+      "description": "Standard access, can work with tenant resources and own items",
+      "use_cases": ["Regular employee", "Team member"]
+    },
+    "tenant_viewer": {
+      "name": "Tenant Viewer",
+      "scope": "tenant",
+      "level": 10,
+      "permissions": ["users:read:own", "organizations:read:own", "projects:read"],
+      "inherits": [],
+      "description": "Read-only access, can view but not modify",
+      "use_cases": ["Contractor", "External partner", "Auditor"]
+    }
+  },
+  "resources": {
+    "users": {
+      "description": "User accounts and profiles",
+      "actions": {
+        "read": {
+          "allowed_roles": [
+            "system_owner",
+            "system_admin",
+            "tenant_owner",
+            "tenant_admin",
+            "tenant_user",
+            "tenant_viewer"
+          ],
+          "conditions": ["tenant_isolation", "ownership"],
+          "description": "View user profiles (enforces tenant isolation or ownership)"
+        },
+        "write": {
+          "allowed_roles": ["system_owner", "tenant_owner", "tenant_admin"],
+          "conditions": ["tenant_isolation"],
+          "description": "Create and update users (same tenant only)"
+        },
+        "delete": {
+          "allowed_roles": ["system_owner", "tenant_owner"],
+          "conditions": ["tenant_isolation"],
+          "description": "Delete users (same tenant only)"
+        }
+      }
+    },
+    "organizations": {
+      "description": "Organization/tenant entities",
+      "actions": {
+        "read": {
+          "allowed_roles": [
+            "system_owner",
+            "system_admin",
+            "tenant_owner",
+            "tenant_admin",
+            "tenant_user",
+            "tenant_viewer"
+          ],
+          "conditions": ["tenant_isolation"],
+          "description": "View organization details"
+        },
+        "write": {
+          "allowed_roles": ["system_owner", "tenant_owner", "tenant_admin"],
+          "conditions": ["tenant_isolation"],
+          "description": "Update organization settings"
+        }
+      }
+    },
+    "projects": {
+      "description": "Project/workspace entities",
+      "actions": {
+        "read": {
+          "allowed_roles": [
+            "system_owner",
+            "system_admin",
+            "tenant_owner",
+            "tenant_admin",
+            "tenant_user",
+            "tenant_viewer"
+          ],
+          "conditions": ["tenant_isolation"],
+          "description": "View projects"
+        },
+        "write": {
+          "allowed_roles": ["system_owner", "tenant_owner", "tenant_admin", "tenant_user"],
+          "conditions": ["tenant_isolation", "ownership"],
+          "description": "Create and update projects (ownership required for tenant_user)"
+        },
+        "delete": {
+          "allowed_roles": ["system_owner", "tenant_owner"],
+          "conditions": ["tenant_isolation"],
+          "description": "Delete projects"
+        }
+      }
+    },
+    "tenants": {
+      "description": "System tenant management (system resource)",
+      "actions": {
+        "read": {
+          "allowed_roles": ["system_owner", "system_admin"],
+          "conditions": [],
+          "description": "View all tenants (system-only)"
+        },
+        "write": {
+          "allowed_roles": ["system_owner"],
+          "conditions": [],
+          "description": "Create and update tenants (system owner only)"
+        }
+      }
+    },
+    "policies": {
+      "description": "Authorization policy management (system resource)",
+      "actions": {
+        "read": {
+          "allowed_roles": ["system_owner", "system_admin", "tenant_owner"],
+          "conditions": [],
+          "description": "View authorization policies"
+        },
+        "write": {
+          "allowed_roles": ["system_owner"],
+          "conditions": [],
+          "description": "Modify authorization policies (system owner only)"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "tenant_isolation": {
+      "type": "attribute",
+      "description": "Ensure user and resource belong to same organization",
+      "evaluation": "input.user.organization_id == input.resource.organization_id",
+      "bypass_roles": ["system_owner", "system_admin"],
+      "bypass_logic": "System roles bypass tenant isolation to enable cross-tenant management"
+    },
+    "ownership": {
+      "type": "attribute",
+      "description": "User can access their own resources",
+      "evaluation": "input.user.id == input.resource.id",
+      "bypass_roles": [],
+      "bypass_logic": "Ownership check allows users to access their own resources regardless of other conditions"
+    },
+    "role": {
+      "type": "role",
+      "description": "Check if user has specific role (including inherited)",
+      "evaluation": "user_has_role(input.user.system_roles + input.user.tenant_roles, condition.value)",
+      "bypass_roles": [],
+      "bypass_logic": "Role check includes inherited roles through the role hierarchy"
+    },
+    "permission": {
+      "type": "permission",
+      "description": "Check if user has specific permission",
+      "evaluation": "input.user.permissions[condition.value] OR input.user.permissions['*']",
+      "wildcard": "*",
+      "wildcard_logic": "Wildcard permission (*) grants all permissions"
+    },
+    "attribute": {
+      "type": "attribute",
+      "description": "Check user attributes for dynamic conditions",
+      "evaluation": "input.user.attributes[condition.key] == condition.value",
+      "examples": ["department == 'engineering'", "location == 'us-east-1'", "tier == 'premium'"]
+    }
+  },
+  "role_hierarchy": {
+    "system": {
+      "system_owner": {
+        "level": 100,
+        "inherits": [],
+        "description": "Highest system role"
+      },
+      "system_admin": {
+        "level": 90,
+        "inherits": [],
+        "description": "System operations role"
+      }
+    },
+    "tenant": {
+      "tenant_owner": {
+        "level": 50,
+        "inherits": ["tenant_admin"],
+        "description": "Full tenant control"
+      },
+      "tenant_admin": {
+        "level": 40,
+        "inherits": ["tenant_user"],
+        "description": "Tenant management"
+      },
+      "tenant_user": {
+        "level": 20,
+        "inherits": [],
+        "description": "Standard tenant user"
+      },
+      "tenant_viewer": {
+        "level": 10,
+        "inherits": [],
+        "description": "Read-only tenant user (separate hierarchy)"
+      }
+    }
+  },
+  "permission_format": {
+    "pattern": "<resource>:<action>[:<scope>]",
+    "examples": [
+      {
+        "permission": "users:read",
+        "description": "Read any user in tenant"
+      },
+      {
+        "permission": "users:read:own",
+        "description": "Read only own user profile"
+      },
+      {
+        "permission": "organizations:write",
+        "description": "Modify any organization in tenant"
+      },
+      {
+        "permission": "projects:write:own",
+        "description": "Modify only own projects"
+      },
+      {
+        "permission": "*",
+        "description": "All permissions (system_owner only)"
+      }
+    ]
+  },
+  "evaluation_order": [
+    "1. Default deny - If no policy explicitly allows, deny access",
+    "2. Role check - Does user have any allowed role (including inherited)?",
+    "3. Condition check - Do all conditions match?",
+    "4. Decision - Allow if all checks pass, deny otherwise"
+  ],
+  "multi_tenancy": {
+    "isolation_type": "organization_id",
+    "enforcement": "Tenant-scoped resources enforce organization_id matching",
+    "bypass": "System roles (system_owner, system_admin) bypass tenant isolation",
+    "storage": "user_roles table (system roles), user_tenants table (tenant roles)"
+  },
+  "integration": {
+    "typescript_constants": "packages/constants/src/domain/",
+    "typescript_types": "packages/types/src/domain/role.types.ts",
+    "system_roles": "packages/constants/src/domain/system-roles.ts",
+    "tenant_roles": "packages/constants/src/domain/tenant-roles.ts",
+    "opa_guard": "@package/opa",
+    "decorator_usage": "@Resource('users'), @Action('read')"
+  }
+}

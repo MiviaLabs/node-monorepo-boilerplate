@@ -1,0 +1,83 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    // Base configuration (existing - preserved)
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "esnext",
+    "lib": ["ES2022", "dom"],
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "typeRoots": ["node_modules/@types"],
+
+    // Strict type checking (NEW - 31 rules from mass-monorepo pattern)
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "exactOptionalPropertyTypes": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "alwaysStrict": true,
+    "noImplicitThis": true,
+
+    // Module resolution enhancements (NEW)
+    "allowImportingTsExtensions": false,
+
+    // Advanced options (NEW)
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": false,
+    "useDefineForClassFields": true,
+
+    // Path aliases (existing - preserved for all 18 packages)
+    "paths": {
+      "@package/db-core": ["packages/db-core/src/index.ts"],
+      "@package/db-outbox": ["packages/db-outbox/src/index.ts"],
+      "@package/types": ["packages/types/src/index.ts"],
+      "@package/utils": ["packages/utils/src/index.ts"],
+      "@package/schema": ["packages/schema/src/index.ts"],
+      "@package/constants": ["packages/constants/src/index.ts"],
+      "@package/errors": ["packages/errors/src/index.ts"],
+      "@package/i18n": ["packages/i18n/src/index.ts"],
+      "@package/core": ["packages/core/src/index.ts"],
+      "@package/observability": ["packages/observability/src/index.ts"],
+      "@package/redis": ["packages/redis/src/index.ts"],
+      "@package/storage": ["packages/storage/src/index.ts"],
+      "@package/storage/nest": ["packages/storage/src/nest.ts"],
+      "@package/encryption": ["packages/encryption/src/index.ts"],
+      "@package/queues": ["packages/queues/src/index.ts"],
+      "@package/pubsub": ["packages/pubsub/src/index.ts"],
+      "@package/tasks": ["packages/tasks/src/index.ts"],
+      "@package/secrets": ["packages/secrets/src/index.ts"],
+      "@package/events": ["packages/events/src/index.ts"],
+      "@package/auth": ["packages/auth/src/index.ts"],
+      "@package/email": ["packages/email/src/index.ts"],
+      "@package/email/webhooks": ["packages/email/src/webhooks/index.ts"],
+      "@package/test-utils": ["packages/test-utils/src/index.ts"]
+    },
+    "noUncheckedSideEffectImports": false,
+    "types": ["*"],
+    "ignoreDeprecations": "6.0"
+  },
+  "include": ["types.d.ts"],
+  "exclude": ["node_modules", "tmp", "dist", "build", ".next"]
+}

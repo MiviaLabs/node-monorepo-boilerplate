@@ -1,0 +1,87 @@
+# ============================================================================
+# GCP KMS Infrastructure - Example Configuration
+# ============================================================================
+# This shows the values generated into ../environments/<env>/gcp-kms.tfvars.
+# NEVER commit live tfvars to version control if they contain sensitive data.
+# ============================================================================
+
+# Required: Your GCP Project ID
+project_id = "my-gcp-project-id"
+
+# Optional: Location for the Key Ring (default: "global")
+# Use "global" for multi-region redundancy or specific regions like "us-east1"
+location = "global"
+
+# Optional: Provider region and zone (defaults shown)
+region = "us-central1"
+zone   = "us-central1-a"
+
+# Optional: Environment label for resource organization (default: "dev")
+environment = "dev"
+
+# Optional: Key Ring identifier (default: "app-encryption-keys")
+key_ring_id = "app-encryption-keys"
+
+# Optional: Crypto Key identifier (default: "primary-encryption-key")
+key_id = "primary-encryption-key"
+
+# Optional: Service Account ID for KMS access (default: "kms-accessor-sa")
+service_account_id = "kms-accessor-sa"
+
+# Optional: Key rotation period (default: "7776000s" = 90 days)
+# Format: {seconds}s (e.g., "7776000s" = 90 days, "2592000s" = 30 days)
+rotation_period = "7776000s"
+
+# Optional: Delay before key version destruction (default: "86400s" = 24 hours)
+# Cannot be changed after key creation. NOTE: Must be in seconds format only.
+key_destruction_delay = "86400s"
+
+# Optional: Encryption algorithm (default: "GOOGLE_SYMMETRIC_ENCRYPTION")
+encryption_algorithm = "GOOGLE_SYMMETRIC_ENCRYPTION"
+
+# Optional: Protection level (default: "SOFTWARE")
+# Use "HSM" for hardware-backed keys (requires Cloud HSM)
+protection_level = "SOFTWARE"
+
+# Optional: Create a service account key (default: false)
+# WARNING: This is a security risk. Prefer Workload Identity for GKE/GCE.
+# Only set to true for non-Google Cloud platforms.
+create_service_account_key = false
+
+# Optional: Additional IAM members to grant encrypt/decrypt access
+# Format: ["user:email@example.com", "serviceAccount:sa@project.iam.gserviceaccount.com"]
+additional_iam_members = []
+
+# Optional: IAM members to grant admin access to the key ring
+# Format: ["user:email@example.com", "serviceAccount:sa@project.iam.gserviceaccount.com"]
+admin_iam_members = []
+
+# ============================================================================
+# Example Configurations
+# ============================================================================
+
+# Development Environment
+# environment              = "dev"
+# create_service_account_key = false
+# additional_iam_members    = []
+
+# Main Environment
+# environment              = "prod"
+# create_service_account_key = false
+# rotation_period           = "7776000s"  # 90 days
+# additional_iam_members    = []
+# admin_iam_members         = [
+#   "user:security-admin@example.com"
+# ]
+
+# With Admin Access
+# admin_iam_members = [
+#   "user:admin@example.com",
+#   "serviceAccount:terraform@project.iam.gserviceaccount.com"
+# ]
+
+# With Additional Service Accounts
+# additional_iam_members = [
+#   "serviceAccount:app-sa@project.iam.gserviceaccount.com",
+#   "serviceAccount:worker-sa@project.iam.gserviceaccount.com"
+# ]

@@ -1,0 +1,88 @@
+# Firebase Auth Emulator - Docker Compose Configuration
+# Local development environment for Firebase Authentication
+#
+# Usage:
+#   docker-compose -f docker-compose.firebase-emulator.yml up -d
+#   docker-compose -f docker-compose.firebase-emulator.yml logs -f firebase-auth
+#   docker-compose -f docker-compose.firebase-emulator.yml down
+
+services:
+  firebase-auth:
+    image: node:24-alpine
+    container_name: mivialabs-firebase-auth-emulator
+    restart: unless-stopped
+
+    # Ports
+    ports:
+      - '9099:9099' # Firebase Auth Emulator API
+      - '4000:4000' # Firebase Emulator UI (optional)
+
+    # Environment Variables
+    environment:
+      - FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
+      - GOOGLE_CLOUD_PROJECT_ID=${GOOGLE_CLOUD_PROJECT_ID:-}
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID:-}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-demo-mivialabs-project}
+      - NODE_ENV=development
+
+    # Volumes
+    volumes:
+      # Seed data directory (optional - for pre-populating test users)
+      - ./scripts/firebase-seed:/app/firebase-seed:ro
+      # Firebase emulator data (persistent storage)
+      - firebase_auth_data:/tmp/firebase-emulator
+
+    # Install Firebase CLI and start Auth emulator
+    command: >
+      sh -c "
+        echo 'Installing Firebase CLI...' &&
+        npm install -g firebase-tools &&
+        echo 'Firebase CLI installed' &&
+        export PROJECT_ID=$${GOOGLE_CLOUD_PROJECT_ID:-$${GCP_PROJECT_ID:-$${FIREBASE_PROJECT_ID:-demo-mivialabs-project}}} &&
+        export GOOGLE_CLOUD_PROJECT_ID=$$PROJECT_ID &&
+        export GCP_PROJECT_ID=$$PROJECT_ID &&
+        export FIREBASE_PROJECT_ID=$$PROJECT_ID &&
+        mkdir -p /tmp/firebase-emulator &&
+        echo 'Starting Firebase Auth Emulator...' &&
+        firebase emulators:start --only auth --project $$FIREBASE_PROJECT_ID --host 0.0.0.0 --port 9099 --import /tmp/firebase-emulator --export-on-exit /tmp/firebase-emulator
+      "
+
+    # Health Check
+    healthcheck:
+      test: |
+        wget --no-verbose --tries=1 --spider http://localhost:9099 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s # Allow time for Firebase CLI installation
+
+    # Resource Limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    # Logging
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+    # Network
+    networks:
+      - firebase-network
+
+# Named Volumes
+volumes:
+  firebase_auth_data:
+    driver: local
+
+# Networks
+networks:
+  firebase-network:
+    driver: bridge

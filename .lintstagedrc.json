@@ -1,0 +1,17 @@
+{
+  "apps/api/**/*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+  "apps/api/**/*.d.ts": ["prettier --write"],
+  "apps/admin/**/*.{ts,tsx}": ["prettier --write"],
+  "apps/admin/**/*.d.ts": ["prettier --write"],
+  "apps/admin-e2e/**/*.{ts,tsx}": ["prettier --write"],
+  "apps/admin-e2e/**/*.d.ts": ["prettier --write"],
+  "apps/web/**/*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+  "apps/web/**/*.d.ts": ["prettier --write"],
+  "packages/**/*.{ts,tsx}": ["prettier --write"],
+  "packages/**/*.d.ts": ["prettier --write"],
+  "scripts/**/*.{ts,tsx}": ["prettier --write"],
+  "*.{js,jsx}": ["prettier --write"],
+  ".eslintrc.js": ["prettier --write"],
+  "tools/eslint/**/*.js": ["prettier --write"],
+  "**/*.{json,md,yml,yaml}": ["prettier --write"]
+}

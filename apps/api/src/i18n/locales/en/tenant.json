@@ -1,0 +1,5 @@
+{
+  "invalid": "Invalid tenant context provided",
+  "notFound": "Tenant not found",
+  "unauthorized": "Unauthorized access to tenant"
+}

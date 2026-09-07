@@ -1,0 +1,1998 @@
+{
+  "graph": {
+    "nodes": {
+      "observability": {
+        "name": "observability",
+        "type": "lib",
+        "data": {
+          "root": "packages/observability",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/observability",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/packages/observability/.eslintrc.json",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/packages/observability",
+                "main": "packages/observability/src/index.ts",
+                "tsConfig": "packages/observability/tsconfig.lib.json",
+                "assets": ["packages/observability/*.md"]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": ["default", "^default"]
+            }
+          },
+          "name": "observability",
+          "tags": ["npm:private"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/observability",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.js",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/observability/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "encryption": {
+        "name": "encryption",
+        "type": "lib",
+        "data": {
+          "root": "packages/encryption",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/encryption",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/packages/encryption/.eslintrc.json",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/packages/encryption",
+                "main": "packages/encryption/src/index.ts",
+                "tsConfig": "packages/encryption/tsconfig.lib.json",
+                "assets": ["packages/encryption/*.md"]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": ["default", "^default"]
+            }
+          },
+          "name": "encryption",
+          "tags": ["npm:private"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/encryption",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.js",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/encryption/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "secrets": {
+        "name": "secrets",
+        "type": "lib",
+        "data": {
+          "root": "packages/secrets",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/secrets",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/packages/secrets/.eslintrc.json",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/packages/secrets",
+                "main": "packages/secrets/src/index.ts",
+                "tsConfig": "packages/secrets/tsconfig.lib.json",
+                "assets": ["packages/secrets/*.md"]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": ["default", "^default"]
+            }
+          },
+          "name": "secrets",
+          "tags": ["npm:private"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/secrets",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.js",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/secrets/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "events": {
+        "name": "events",
+        "type": "lib",
+        "data": {
+          "root": "packages/events",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/events",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/packages/events/.eslintrc.json",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/packages/events",
+                "main": "packages/events/src/index.ts",
+                "tsConfig": "packages/events/tsconfig.lib.json",
+                "assets": ["packages/events/*.md"]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": ["default", "^default"]
+            }
+          },
+          "name": "events",
+          "tags": ["npm:private"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/events",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.js",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/events/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "queues": {
+        "name": "queues",
+        "type": "lib",
+        "data": {
+          "root": "packages/queues",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/queues",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/packages/queues/.eslintrc.json",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/packages/queues",
+                "main": "packages/queues/src/index.ts",
+                "tsConfig": "packages/queues/tsconfig.lib.json",
+                "assets": ["packages/queues/*.md"]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": ["default", "^default"]
+            }
+          },
+          "name": "queues",
+          "tags": ["npm:private"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/queues",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.js",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/queues/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "redis": {
+        "name": "redis",
+        "type": "lib",
+        "data": {
+          "root": "packages/redis",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/redis",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/packages/redis/.eslintrc.json",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/packages/redis",
+                "main": "packages/redis/src/index.ts",
+                "tsConfig": "packages/redis/tsconfig.lib.json",
+                "assets": ["packages/redis/*.md"]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": ["default", "^default"]
+            }
+          },
+          "name": "redis",
+          "tags": ["npm:private"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/redis",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.js",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/redis/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "test-utils": {
+        "name": "test-utils",
+        "type": "lib",
+        "data": {
+          "root": "packages/test-utils",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/test-utils",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/packages/test-utils/.eslintrc.json",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/packages/test-utils",
+                "main": "packages/test-utils/src/index.ts",
+                "tsConfig": "packages/test-utils/tsconfig.lib.json",
+                "assets": ["packages/test-utils/*.md"]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": ["default", "^default"]
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "eslint src",
+                "cwd": "packages/test-utils"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit -p tsconfig.lib.json",
+                "cwd": "packages/test-utils"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "test-utils",
+          "tags": ["npm:private", "scope:shared", "type:test-utils"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/test-utils",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/test-utils/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "validation": {
+        "name": "validation",
+        "type": "lib",
+        "data": {
+          "root": "packages/validation",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/validation",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npx tsx --test src/**/*.test.ts",
+                "cwd": "packages/validation"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "eslint src",
+                "cwd": "packages/validation"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit",
+                "cwd": "packages/validation"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "validation",
+          "tags": ["npm:public", "scope:shared", "type:validation"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/validation",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/validation/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "@package/eslint-rules": {
+        "name": "@package/eslint-rules",
+        "type": "lib",
+        "data": {
+          "root": "tools/eslint-rules",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "tools/eslint-rules",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "@package/eslint-rules",
+          "implicitDependencies": [],
+          "tags": []
+        }
+      },
+      "constants": {
+        "name": "constants",
+        "type": "lib",
+        "data": {
+          "root": "packages/constants",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/constants",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npx tsx --test src/**/*.test.ts",
+                "cwd": "packages/constants"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "eslint src",
+                "cwd": "packages/constants"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit",
+                "cwd": "packages/constants"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "constants",
+          "tags": ["npm:public", "scope:shared", "type:constants"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/constants",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/constants/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "db-core": {
+        "name": "db-core",
+        "type": "lib",
+        "data": {
+          "root": "packages/db-core",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/db-core",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/packages/db-core",
+                "main": "packages/db-core/src/index.ts",
+                "tsConfig": "packages/db-core/tsconfig.lib.json",
+                "assets": ["packages/db-core/*.md"]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": ["default", "^default"]
+            },
+            "lint": {
+              "executor": "@nx/eslint:lint",
+              "outputs": ["{options.outputFile}"],
+              "configurations": {},
+              "options": {},
+              "parallelism": true
+            }
+          },
+          "name": "db-core",
+          "tags": ["npm:public"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/db-core",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/db-core/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "errors": {
+        "name": "errors",
+        "type": "lib",
+        "data": {
+          "root": "packages/errors",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/errors",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:watch": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:watch"
+              },
+              "metadata": {
+                "scriptContent": "node --test --watch ${INIT_CWD:-.}/tests/unit/**/*.test.ts",
+                "runCommand": "pnpm run test:watch"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc",
+                "cwd": "packages/errors"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npx tsx --test tests/**/*.test.ts",
+                "cwd": "packages/errors"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "eslint src tests",
+                "cwd": "packages/errors"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit",
+                "cwd": "packages/errors"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "generate-factories": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npx tsx src/scripts/generate-factories.ts",
+                "cwd": "packages/errors"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "errors",
+          "tags": ["npm:public", "scope:shared", "type:errors"],
+          "metadata": {
+            "targetGroups": {
+              "NPM Scripts": ["test:watch"]
+            },
+            "js": {
+              "packageName": "@package/errors",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/errors/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "types": {
+        "name": "types",
+        "type": "lib",
+        "data": {
+          "root": "packages/types",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/types",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npx tsx --test src/**/*.test.ts",
+                "cwd": "packages/types"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "eslint src",
+                "cwd": "packages/types"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit",
+                "cwd": "packages/types"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "types",
+          "tags": ["npm:public", "scope:shared", "type:types"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/types",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/types/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "utils": {
+        "name": "utils",
+        "type": "lib",
+        "data": {
+          "root": "packages/utils",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "packages/utils",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npx tsx --test src/**/*.test.ts",
+                "cwd": "packages/utils"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "eslint src",
+                "cwd": "packages/utils"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit",
+                "cwd": "packages/utils"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "utils",
+          "tags": ["npm:public", "scope:shared", "type:utils"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/utils",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/utils/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "i18n": {
+        "name": "i18n",
+        "type": "lib",
+        "data": {
+          "root": "packages/i18n",
+          "name": "i18n",
+          "tags": ["npm:public", "scope:shared", "type:i18n"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@package/i18n",
+              "packageVersion": "0.0.1",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "targets": {
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc",
+                "cwd": "packages/i18n"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npx tsx --test src/**/*.test.ts",
+                "cwd": "packages/i18n"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "eslint src --ext .ts || true",
+                "cwd": "packages/i18n"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit",
+                "cwd": "packages/i18n"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "validate": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npx tsx scripts/validate-translations.ts",
+                "cwd": "packages/i18n"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/i18n/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "api-e2e": {
+        "name": "api-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/api-e2e",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "apps/api-e2e",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "options": {
+                "cwd": "apps/api-e2e",
+                "env": {
+                  "TS_NODE_COMPILER_OPTIONS": "{\"moduleResolution\":\"node10\",\"module\":\"commonjs\",\"customConditions\":null}",
+                  "NODE_OPTIONS": "--no-experimental-strip-types"
+                },
+                "command": "jest"
+              },
+              "metadata": {
+                "technologies": ["jest"],
+                "description": "Run Jest Tests",
+                "help": {
+                  "command": "pnpm exec jest --help",
+                  "example": {
+                    "options": {
+                      "coverage": true
+                    }
+                  }
+                }
+              },
+              "cache": true,
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/jest.preset.js",
+                {
+                  "externalDependencies": ["jest"]
+                }
+              ],
+              "outputs": ["{workspaceRoot}/coverage/api-e2e"],
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "@nx/jest:jest",
+              "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+              "options": {
+                "jestConfig": "apps/api-e2e/jest.config.cts",
+                "passWithNoTests": true
+              },
+              "dependsOn": ["api:build", "api:serve"],
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "api-e2e",
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "implicitDependencies": ["api"],
+          "tags": []
+        }
+      },
+      "web-e2e": {
+        "name": "web-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/web-e2e",
+          "metadata": {
+            "targetGroups": {
+              "E2E (CI)": ["e2e-ci--src/example.spec.ts", "e2e-ci", "e2e-ci--merge-reports"]
+            }
+          },
+          "targets": {
+            "e2e": {
+              "executor": "@nx/playwright:playwright",
+              "options": {
+                "config": "apps/web-e2e/playwright.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e-ci--src/example.spec.ts": {
+              "options": {
+                "cwd": "apps/web-e2e",
+                "env": {
+                  "PLAYWRIGHT_HTML_OUTPUT_DIR": "../../dist/.playwright/apps/web-e2e/playwright-report/src-example-spec-ts",
+                  "PLAYWRIGHT_HTML_REPORT": "../../dist/.playwright/apps/web-e2e/playwright-report/src-example-spec-ts"
+                },
+                "command": "playwright test src/example.spec.ts --output=../../dist/.playwright/apps/web-e2e/test-output/src-example-spec-ts"
+              },
+              "metadata": {
+                "technologies": ["playwright"],
+                "description": "Runs Playwright Tests in src/example.spec.ts in CI",
+                "help": {
+                  "command": "pnpm exec playwright test --help",
+                  "example": {
+                    "options": {
+                      "workers": 1
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                {
+                  "projects": ["web"],
+                  "target": "dev"
+                }
+              ],
+              "cache": true,
+              "inputs": [
+                "default",
+                "^default",
+                {
+                  "externalDependencies": ["@playwright/test"]
+                }
+              ],
+              "outputs": [
+                "{workspaceRoot}/dist/.playwright/apps/web-e2e/test-output/src-example-spec-ts",
+                "{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report/src-example-spec-ts"
+              ],
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e-ci": {
+              "executor": "nx:noop",
+              "cache": true,
+              "inputs": [
+                "default",
+                "^default",
+                {
+                  "externalDependencies": ["@playwright/test"]
+                }
+              ],
+              "outputs": [
+                "{workspaceRoot}/dist/.playwright/apps/web-e2e/test-output",
+                "{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report"
+              ],
+              "dependsOn": [
+                {
+                  "target": "e2e-ci--src/example.spec.ts",
+                  "projects": "self",
+                  "params": "forward",
+                  "options": "forward"
+                }
+              ],
+              "metadata": {
+                "technologies": ["playwright"],
+                "description": "Runs Playwright Tests in CI",
+                "nonAtomizedTarget": "e2e",
+                "help": {
+                  "command": "pnpm exec playwright test --help",
+                  "example": {
+                    "options": {
+                      "workers": 1
+                    }
+                  }
+                }
+              },
+              "configurations": {},
+              "options": {},
+              "parallelism": true
+            },
+            "e2e-ci--merge-reports": {
+              "executor": "@nx/playwright:merge-reports",
+              "cache": true,
+              "inputs": [
+                "default",
+                "^default",
+                {
+                  "externalDependencies": ["@playwright/test"]
+                }
+              ],
+              "outputs": ["{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report"],
+              "options": {
+                "config": "playwright.config.ts",
+                "expectedSuites": 1
+              },
+              "metadata": {
+                "technologies": ["playwright"],
+                "description": "Merges Playwright blob reports from atomized tasks to produce unified reports for the configured reporters."
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "apps/web-e2e",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "web-e2e",
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/web-e2e/src",
+          "tags": [],
+          "implicitDependencies": ["web"]
+        }
+      },
+      "api": {
+        "name": "api",
+        "type": "app",
+        "data": {
+          "root": "apps/api",
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {
+              "NPM Scripts": ["test:unit", "test:unit:watch", "test:e2e"]
+            },
+            "js": {
+              "packageName": "api",
+              "packageVersion": "0.0.1",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "targets": {
+            "build": {
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": [
+                "default",
+                "^default",
+                {
+                  "externalDependencies": ["webpack-cli"]
+                }
+              ],
+              "outputs": ["{workspaceRoot}/dist/apps/api"],
+              "metadata": {
+                "technologies": ["webpack"],
+                "description": "Runs Webpack build",
+                "help": {
+                  "command": "pnpm exec webpack-cli build --help",
+                  "example": {
+                    "options": {
+                      "json": "stats.json"
+                    },
+                    "args": ["--profile"]
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/api",
+                "args": ["--node-env=production"],
+                "command": "webpack-cli build"
+              },
+              "configurations": {
+                "development": {
+                  "args": ["--node-env=development"]
+                }
+              },
+              "parallelism": true
+            },
+            "serve": {
+              "continuous": true,
+              "executor": "@nx/js:node",
+              "defaultConfiguration": "development",
+              "dependsOn": ["build"],
+              "options": {
+                "buildTarget": "api:build",
+                "runBuildTargetDependencies": false
+              },
+              "configurations": {
+                "development": {
+                  "buildTarget": "api:build:development"
+                },
+                "production": {
+                  "buildTarget": "api:build:production"
+                }
+              },
+              "parallelism": true
+            },
+            "preview": {
+              "continuous": true,
+              "options": {
+                "cwd": "apps/api",
+                "args": ["--node-env=production"],
+                "command": "webpack-cli serve"
+              },
+              "metadata": {
+                "technologies": ["webpack"],
+                "description": "Starts Webpack dev server in production mode",
+                "help": {
+                  "command": "pnpm exec webpack-cli serve --help",
+                  "example": {
+                    "options": {
+                      "args": ["--client-progress", "--history-api-fallback "]
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "dependsOn": ["build"],
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": ["^build"],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": ["build-deps"],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects api --includeDependentProjects -- pnpm exec nx build-deps api"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "apps/api",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:unit": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:unit"
+              },
+              "metadata": {
+                "scriptContent": "node --test src/**/*.test.ts",
+                "runCommand": "pnpm run test:unit"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:unit:watch": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:unit:watch"
+              },
+              "metadata": {
+                "scriptContent": "node --test --watch src/**/*.test.ts",
+                "runCommand": "pnpm run test:unit:watch"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:e2e": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:e2e"
+              },
+              "metadata": {
+                "scriptContent": "nx e2e api",
+                "runCommand": "pnpm run test:e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "prune-lockfile": {
+              "dependsOn": ["build"],
+              "cache": true,
+              "executor": "@nx/js:prune-lockfile",
+              "outputs": [
+                "{workspaceRoot}/dist/apps/api/package.json",
+                "{workspaceRoot}/dist/apps/api/pnpm-lock.yaml"
+              ],
+              "options": {
+                "buildTarget": "build"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "copy-workspace-modules": {
+              "dependsOn": ["build"],
+              "cache": true,
+              "outputs": ["{workspaceRoot}/dist/apps/api/workspace_modules"],
+              "executor": "@nx/js:copy-workspace-modules",
+              "options": {
+                "buildTarget": "build"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "prune": {
+              "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
+              "executor": "nx:noop",
+              "configurations": {},
+              "options": {},
+              "parallelism": true
+            },
+            "serve:dev": {
+              "description": "Run API in development mode without webpack bundling (needed for Swagger UI static assets)",
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "NODE_ENV=development SWAGGER_ENABLED=true node dist/apps/api/main.js",
+                "cwd": "."
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "start": {
+              "description": "Run API directly with ts-node dev (no bundling, full Swagger support)",
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "ts-node src/main.ts",
+                "cwd": "apps/api"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  {
+                    "command": "ESLINT_USE_FLAT_CONFIG=false pnpm exec eslint src --ext .ts",
+                    "forwardAllArgs": false
+                  },
+                  {
+                    "command": "tsc --project tsconfig.app.json --noEmit"
+                  }
+                ],
+                "cwd": "apps/api",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "node --test src/**/*.test.ts",
+                "cwd": "apps/api"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --project tsconfig.app.json --noEmit",
+                "cwd": "apps/api"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "api",
+          "tags": ["npm:public"],
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/api/src",
+          "implicitDependencies": []
+        }
+      },
+      "web": {
+        "name": "web",
+        "type": "app",
+        "data": {
+          "root": "apps/web",
+          "targets": {
+            "build": {
+              "options": {
+                "cwd": "apps/web",
+                "tty": false,
+                "command": "next build"
+              },
+              "dependsOn": ["^build"],
+              "cache": true,
+              "inputs": [
+                "default",
+                "^default",
+                {
+                  "externalDependencies": ["next"]
+                }
+              ],
+              "outputs": [
+                "{workspaceRoot}/apps/web/.next/!(cache)/**/*",
+                "{workspaceRoot}/apps/web/.next/!(cache)"
+              ],
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "continuous": true,
+              "options": {
+                "cwd": "apps/web",
+                "command": "next dev"
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "start": {
+              "continuous": true,
+              "options": {
+                "cwd": "apps/web",
+                "command": "next start"
+              },
+              "dependsOn": ["build"],
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "options": {
+                "cwd": "apps/web",
+                "command": "next start"
+              },
+              "dependsOn": ["build"],
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": ["^build"],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": ["build-deps"],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects web --includeDependentProjects -- pnpm exec nx build-deps web"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "apps/web",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "web",
+          "tags": ["npm:public"],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "web",
+              "packageVersion": "0.0.1",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/web",
+          "projectType": "application",
+          "implicitDependencies": []
+        }
+      },
+      "node-monorepo-boilerplate-monorepo-enterprise-starter-kit": {
+        "name": "node-monorepo-boilerplate-monorepo-enterprise-starter-kit",
+        "type": "lib",
+        "data": {
+          "root": ".",
+          "name": "node-monorepo-boilerplate-monorepo-enterprise-starter-kit",
+          "includedScripts": [],
+          "tags": ["npm:public"],
+          "metadata": {
+            "targetGroups": {},
+            "description": "",
+            "js": {
+              "packageName": "node-monorepo-boilerplate-monorepo-enterprise-starter-kit",
+              "packageVersion": "1.0.0",
+              "packageMain": "index.js",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "targets": {
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      }
+    },
+    "dependencies": {
+      "observability": [],
+      "encryption": [],
+      "secrets": [],
+      "events": [],
+      "queues": [
+        {
+          "source": "queues",
+          "target": "redis",
+          "type": "static"
+        }
+      ],
+      "redis": [],
+      "test-utils": [
+        {
+          "source": "test-utils",
+          "target": "db-core",
+          "type": "static"
+        }
+      ],
+      "validation": [],
+      "@package/eslint-rules": [],
+      "constants": [],
+      "db-core": [],
+      "errors": [],
+      "types": [],
+      "utils": [],
+      "i18n": [],
+      "api-e2e": [
+        {
+          "source": "api-e2e",
+          "target": "api",
+          "type": "implicit"
+        }
+      ],
+      "web-e2e": [
+        {
+          "source": "web-e2e",
+          "target": "web",
+          "type": "implicit"
+        }
+      ],
+      "api": [
+        {
+          "source": "api",
+          "target": "errors",
+          "type": "static"
+        },
+        {
+          "source": "api",
+          "target": "db-core",
+          "type": "static"
+        },
+        {
+          "source": "api",
+          "target": "test-utils",
+          "type": "static"
+        }
+      ],
+      "web": [],
+      "node-monorepo-boilerplate-monorepo-enterprise-starter-kit": [
+        {
+          "source": "node-monorepo-boilerplate-monorepo-enterprise-starter-kit",
+          "target": "@package/eslint-rules",
+          "type": "static"
+        }
+      ]
+    }
+  }
+}

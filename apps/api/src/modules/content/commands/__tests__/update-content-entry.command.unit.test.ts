@@ -1,0 +1,37 @@
+import { describe, expect, it } from '@jest/globals';
+
+import { UpdateContentEntryDto } from '../../dto';
+import { UpdateContentEntryCommand } from '../update-content-entry.command';
+
+describe('UpdateContentEntryCommand', () => {
+  it('stores tenant, entry id, dto, and trace metadata', () => {
+    const dto = new UpdateContentEntryDto();
+    dto.title = 'Updated';
+    dto.parentId = 56;
+
+    const command = new UpdateContentEntryCommand(
+      '12',
+      '34',
+      'actor-34',
+      ['tenant_admin'],
+      '99',
+      dto,
+      {
+        requestId: 'req-2',
+        correlationId: 'corr-2',
+        causationId: 'cause-2'
+      }
+    );
+
+    expect(command.tenantId).toBe('12');
+    expect(command.userId).toBe('34');
+    expect(command.actorId).toBe('actor-34');
+    expect(command.roles).toEqual(['tenant_admin']);
+    expect(command.entryId).toBe('99');
+    expect(command.dto).toBe(dto);
+    expect(command.requestId).toBe('req-2');
+    expect(command.correlationId).toBe('corr-2');
+    expect(command.causationId).toBe('cause-2');
+    expect(command.readonly).toBe(true);
+  });
+});

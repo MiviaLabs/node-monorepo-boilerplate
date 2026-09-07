@@ -1,0 +1,9 @@
+{
+  // Semgrep Extension Configuration
+  // Uses custom rules from tools/semgrep/security.yml
+  "semgrep.scan.configuration": ["tools/semgrep/security.yml", "tools/semgrep/documentation.yml"],
+  "semgrep.scan.autoScan": true,
+  "semgrep.scan.onSave": true,
+  "semgrep.scan.severity": ["ERROR", "WARNING"],
+  "semgrep.trace.server": "off"
+}

@@ -1,0 +1,40 @@
+# Grafana Datasource Provisioning Configuration
+#
+# This configures Prometheus as a datasource for Grafana.
+# Grafana will auto-import this datasource on startup.
+#
+# References:
+#   - https://grafana.com/docs/grafana/latest/administration/provisioning/#datasources
+
+apiVersion: 1
+
+datasources:
+  # Prometheus datasource for metrics
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      # Time interval for queries
+      timeInterval: 15s
+      # Query timeout
+      queryTimeout: 60s
+      # HTTP method
+      httpMethod: POST
+    # Disable deletion (can be changed in UI)
+    # disableDeletion: false
+
+  # Jaeger datasource for distributed tracing
+  # Note: Requires Jaeger plugin to be installed
+  # - name: Jaeger
+  #   type: jaeger
+  #   access: proxy
+  #   url: http://jaeger:16686
+  #   isDefault: false
+  #   editable: true
+  #   jsonData:
+  #     tracesToLogs:
+  #       datasourceUid: 'loki'
+  #   version: 1

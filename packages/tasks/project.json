@@ -1,0 +1,47 @@
+{
+  "name": "tasks",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/tasks/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/tasks",
+        "main": "packages/tasks/src/index.ts",
+        "tsConfig": "packages/tasks/tsconfig.lib.json",
+        "assets": ["packages/tasks/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/tasks",
+        "command": "pnpm test"
+      }
+    },
+    "test:unit": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/tasks",
+        "command": "pnpm test:unit"
+      }
+    },
+    "test:integration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/tasks",
+        "command": "pnpm test:integration"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/tasks",
+        "command": "eslint src"
+      }
+    }
+  },
+  "tags": ["type:infrastructure", "scope:gcp", "scope:infra"]
+}

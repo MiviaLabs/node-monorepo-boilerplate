@@ -1,0 +1,63 @@
+purpose: Name stable workflow rules used by tasks and reviews.
+applies: Team coordination, task lifecycle, review, validation, and learning capture.
+verification: Confirm each required rule is represented by task, workflow, or runtime validation.
+authority: Rules are canonical governance identifiers; their enforcement lives in schemas, workflows, runtime, and CI.
+
+rules:
+  - id: parallel
+    applies_to: team
+    description: Team members may run in parallel only when they remain read-only or have disjoint ownership.
+  - id: read-only
+    applies_to: team
+    description: The phase is exploratory and must not change repository files.
+  - id: synthesize-before-next-phase
+    applies_to: team
+    description: Research outputs must be summarized before planning or implementation starts.
+  - id: parallel-when-disjoint
+    applies_to: team
+    description: Parallel implementation is allowed only when file ownership is explicit and disjoint.
+  - id: explicit-file-ownership
+    applies_to: team
+    description: Each implementation task must declare the files it owns before edits begin.
+  - id: reviewer-required
+    applies_to: team
+    description: Implementation work cannot close until review evidence is recorded.
+  - id: independent-lenses
+    applies_to: team
+    description: Review, test analysis, and gate execution should assess different failure modes.
+  - id: findings-before-summary
+    applies_to: team
+    description: Reviews report findings before summaries or overviews.
+  - id: tdd-when-applicable
+    applies_to: workflow
+    description: New logic and bug fixes should follow RED -> GREEN -> REFACTOR unless clearly inapplicable.
+  - id: disjoint-file-ownership
+    applies_to: workflow
+    description: Concurrent edits require declared non-overlapping ownership.
+  - id: no-merge-without-review
+    applies_to: workflow
+    description: Changed and impacted code must be reviewed before the task can close.
+  - id: run-required-checks
+    applies_to: workflow
+    description: Execute every required automated gate declared by the task contract.
+  - id: verify-known-risks-rechecked
+    applies_to: workflow
+    description: Validation must confirm relevant known failure patterns and prior lessons were rechecked.
+  - id: attach-completion-evidence
+    applies_to: workflow
+    description: Record completion evidence that satisfies the completion contract.
+  - id: block-close-on-failed-gates
+    applies_to: workflow
+    description: Tasks remain open when any required automated gate or review obligation fails.
+  - id: load-relevant-lessons
+    applies_to: workflow
+    description: Agents must review repository lessons and risk patterns that match the task scope before planning or execution.
+  - id: declare-preflight-checks
+    applies_to: workflow
+    description: Tasks must declare the prevention checks they will use to avoid repeating known mistakes.
+  - id: capture-lessons-before-close
+    applies_to: workflow
+    description: Closure evidence must record mistakes observed, lessons captured, and future checks required.
+  - id: promote-repeated-mistakes
+    applies_to: workflow
+    description: Repeated or high-severity failures must be promoted into reusable rules, standards, tests, or memory entries.

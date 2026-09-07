@@ -1,0 +1,47 @@
+{
+  "name": "pubsub",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/pubsub/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/pubsub",
+        "main": "packages/pubsub/src/index.ts",
+        "tsConfig": "packages/pubsub/tsconfig.lib.json",
+        "assets": ["packages/pubsub/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/pubsub",
+        "command": "pnpm test"
+      }
+    },
+    "test:unit": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/pubsub",
+        "command": "pnpm test:unit"
+      }
+    },
+    "test:integration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/pubsub",
+        "command": "pnpm test:integration"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/pubsub",
+        "command": "eslint src"
+      }
+    }
+  },
+  "tags": ["type:infrastructure", "scope:gcp", "scope:infra"]
+}

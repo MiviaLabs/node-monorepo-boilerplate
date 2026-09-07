@@ -1,0 +1,49 @@
+#!/usr/bin/env sh
+# Pre-push hooks are MANDATORY - no bypass allowed
+
+# Ensure pnpm is in PATH (critical for CI/CD and devcontainer compatibility)
+export PATH="$PATH:$(pwd)/node_modules/.bin"
+if command -v corepack >/dev/null 2>&1; then
+  PNPM_BIN="corepack pnpm"
+elif command -v pnpm >/dev/null 2>&1; then
+  PNPM_BIN="pnpm"
+elif [ -x "$(pwd)/node_modules/.bin/pnpm" ]; then
+  PNPM_BIN="$(pwd)/node_modules/.bin/pnpm"
+else
+  echo "ERROR: pnpm not found in PATH or node_modules/.bin/"
+  echo "Run 'corepack enable pnpm' or 'pnpm install' to fix this."
+  exit 1
+fi
+
+echo "Running pre-push hooks (using $PNPM_BIN)..."
+
+# Every push revalidates the canonical agent contract and generated surfaces.
+$PNPM_BIN run agentic:check || {
+  echo "Agent contract or generated-surface validation failed. Aborting push."
+  exit 1
+}
+
+CURRENT_BRANCH=$(git branch --show-current)
+BASE_REF="origin/dev"
+if [ "$CURRENT_BRANCH" = "staging" ]; then
+  BASE_REF="origin/dev"
+elif [ "$CURRENT_BRANCH" = "main" ]; then
+  BASE_REF="origin/staging"
+elif [ "$CURRENT_BRANCH" = "dev" ]; then
+  BASE_REF="origin/dev"
+fi
+
+if ! git rev-parse --verify "$BASE_REF" >/dev/null 2>&1; then
+  BASE_REF="HEAD~1"
+fi
+
+echo "Checking affected projects against $BASE_REF..."
+
+# Run tests on affected projects
+echo "Running tests on affected projects..."
+TEST_MODE=true NODE_ENV=test $PNPM_BIN nx affected --target=test --base="$BASE_REF" --head=HEAD || {
+  echo "Test failures in affected projects. Aborting push."
+  exit 1
+}
+
+echo "Pre-push hooks completed."
